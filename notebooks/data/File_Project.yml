@@ -1,0 +1,17 @@
+#YAML
+
+###########################################################################################################
+#### Este fichero contiene toda la configuración necesaria para poder llevar a cabo la ejecución de la ####
+#### aplicación GUIAAME en cualquier embalse de la geografía Española. Es recomendable no modificar    ####
+###########################################################################################################
+---
+path_project    :    'path_project' # Directorio donde se guarda todo el proyecto
+name_project    :    'Embalse'      # Nombre del proyecto
+path_datos      :    'path_data'   # Directorio donde han sido descargados los datos de AEMET
+nombre_embalse  :    'nombre'       # Nombre del embalse
+X_UTM           :     '1'             # Corrdenada X UTM de la localización del embalse
+Y_UTM           :     '2'             # Corrdenada Y UTM de la localización del embalse
+config_basin    : 'No'                # ¿Se ha realizado la configuración de la cuenca?
+regresion       : 'No'                # ¿Se ha realizado la regresión de la cuenca?
+ejec_red_escala : 'No'
+ejec_aport_cc   : 'No'
