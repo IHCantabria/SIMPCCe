@@ -9,7 +9,7 @@
 La librería SIMPCCe se desarrolla como complemento a la **GUÍA METODOLÓGICA PARA LA ESTIMACIÓN DE APORTACIONES MÍNIMAS A EMBALSES EN EL CONTEXTO DE CAMBIO CLIMÁTICO**
 
 ## Aplicación SIMPCCe
-Además de la creación de la librería SIMPCCe se ha desarrollado una aplicación con el mismo nombre que permite aplicar la metodología descrita en la guía sin necesidad de la ejecución del código ni instalación de los diferentes requerimientos. Esta aplicación es un ejecutable en la que el usuario interactua con ella para configurar el proyecto en el punto deseado. Para obtener la aplicación vaya a la sección de **Releases** de esta página web (en la parte derecha de la página) y descargue el archivo ejecutable [**SIMPCCe.exe**](https://github.com/IHCantabria/SIMPCCe/releases/download/v1.0.0/SIMPCCe-Windows.exe)
+Además de la creación de la librería SIMPCCe se ha desarrollado una aplicación con el mismo nombre que permite aplicar la metodología descrita en la guía sin necesidad de la ejecución del código ni instalación de los diferentes requerimientos. Esta aplicación es un ejecutable en la que el usuario interactua con ella para configurar el proyecto en el punto deseado. Para obtener la aplicación vaya a la sección de **Releases** de esta página web (en la parte derecha de la página) y descargue el archivo ejecutable o pulse en el siguiente enlace [**SIMPCCe.exe**](https://github.com/IHCantabria/SIMPCCe/releases/download/v1.0.0/SIMPCCe-Windows.exe)
 
 <p float="left">
 <img src="https://github.com/IHCantabria/SIMPCCe/blob/main/SIMPCCe.png" alt="drawing" width="400"/>
@@ -23,6 +23,7 @@ Además de la creación de la librería SIMPCCe se ha desarrollado una aplicaci�
 |  [SIMPCCe](https://github.com/IHCantabria/SIMPCCe/tree/main/SIMPCCe) | Código de Python donde se han implementado la librería que permite realizar todo el análisis definido en la metodología.
 | [doc](https://github.com/IHCantabria/SIMPCCe/tree/main/doc) | Directorio donde se localiza la guía metodológica y el manual de la aplicación SIMPCCe.
 | [notebooks](https://github.com/IHCantabria/SIMPCCe/tree/main/notebooks) |  Jupyter notebooks donde se realiza un ejemplo de aplicación y que puede ser utilizado para realizar cualquier estudio.
+| [app](https://github.com/IHCantabria/SIMPCCe/releases/download/v1.0.0/SIMPCCe-Windows.exe) |  Enlace de descarga de la aplicación
 
 ## Requerimientos
 
