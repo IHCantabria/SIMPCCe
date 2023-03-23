@@ -74,6 +74,11 @@ La versión original de la librería y aplicación ha sido desarrollada por:
 + Salvador Navas
 + Manuel del Jesus
 
+## Contacto
+Para cualquier consulta o ayuda pongase en contacto a través del siguiente email
+
+info@ihcantabria.com
+
 ## Licencia
 La aplicación informática SIMPCCe ha sido desarrollada por el Instituto de Hidráulica ambiental de Cantabria (IHC) como
 herramienta complementaria a esta guía. Está vinculada al encargo recibido de la Fundación Canal para el desarrollo de la Guía metodológica para la estimación de aportaciones mínimas a embalses en el contexto de cambio climático,
