@@ -27,7 +27,7 @@ En el siguiente enlace [**Manual SIMPCCe**](https://www.fundacioncanal.com/docs/
 
 ## Requerimientos para el uso de la librería SIMPCCe
 
-Los scripts y cuadernos (jupyter) se proporcionan en [Python](https://www.python.org/) tara asegurar la reproducibilidad y reutilización de los resultados. La forma más sencilla de cumplir con todos estos requisitos es utilizando un entorno dedicado de [conda](https://docs.conda.io) , que se puede instalar fácilmente mediante la ejecución de la siguientes líneas de comando y la descarga o el clonado de la librería para acceder al [fichero  yml](https://github.com/IHCantabria/SIMPCCe/blob/main/environment.yml) que permitirá instalar todas las librerías necesaria para la utilización de la librería SIMPCCe
+Los scripts y cuadernos (jupyter) se proporcionan en [Python](https://www.python.org/) para asegurar la reproducibilidad y reutilización de los resultados. La forma más sencilla de cumplir con todos estos requisitos es utilizando un entorno dedicado de [conda](https://docs.conda.io) , que se puede instalar fácilmente mediante la ejecución de la siguientes líneas de comando y la descarga o el clonado de la librería para acceder al [fichero  yml](https://github.com/IHCantabria/SIMPCCe/blob/main/environment.yml) que permitirá instalar todas las librerías necesaria para la utilización de la librería SIMPCCe
 
 ### ¿Cómo puedo instalar python en mi equipo?
 
