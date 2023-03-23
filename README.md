@@ -6,7 +6,7 @@
 <img src="https://ihcantabria.com/wp-content/uploads/2020/07/Logo-IHCantabria-Universidad-Cantabria-cmyk.png" alt="drawing" width="240"/>
 </p>
 
-La librería SIMPCCe se desarrolla como complemento a la **GUÍA METODOLÓGICA PARA LA ESTIMACIÓN DE APORTACIONES MÍNIMAS A EMBALSES EN EL CONTEXTO DE CAMBIO CLIMÁTICO**
+La librería SIMPCCe se desarrolla como complemento a la [**Guía metodológica para la estimación de aportaciones mínimas a embalses en el contexto de cambio climático**](https://www.fundacioncanal.com/docs/guia_embalses_cbio_climatico_FundCanal_2022.pdf)
 
 ## Aplicación SIMPCCe
 Además de la creación de la librería SIMPCCe se ha desarrollado una aplicación con el mismo nombre que permite aplicar la metodología descrita en la guía sin necesidad de la ejecución del código ni instalación de los diferentes requerimientos. Esta aplicación es un ejecutable en la que el usuario interactua con ella para configurar el proyecto en el punto deseado. Para obtener la aplicación vaya a la sección de **Releases** de esta página web (en la parte derecha de la página) y descargue el archivo ejecutable o pulse en el siguiente enlace [**SIMPCCe.exe**](https://github.com/IHCantabria/SIMPCCe/releases/download/v1.0.0/SIMPCCe-Windows.exe)
@@ -15,16 +15,15 @@ Además de la creación de la librería SIMPCCe se ha desarrollado una aplicaci�
 <img src="https://github.com/IHCantabria/SIMPCCe/blob/main/SIMPCCe.png" alt="drawing" width="400"/>
 </p>
 
+En el siguiente enlace [**Manual SIMPCCe**](https://www.fundacioncanal.com/docs/guia_embalses_cbio_climatico_FundCanal_2022.pdf#page=122) se puede acceder a la parte de la guía donde se encuentra el manual de la aplicación.
+
 **La idea fundamental de la librería y la aplicación es el uso complementario a la guía; por tanto, para su utilización es necesario que el usuario conozca la metodología descrita en la guía para evitar un uso incorrecto.**
 
-## Contenido
+## Contenido del repositorio
 | Directorio | Contenido |
 | :-------- | :------- |
 |  [SIMPCCe](https://github.com/IHCantabria/SIMPCCe/tree/main/SIMPCCe) | Código de Python donde se han implementado la librería que permite realizar todo el análisis definido en la metodología.
-| [doc](https://www.fundacioncanal.com/docs/guia_embalses_cbio_climatico_FundCanal_2022.pdf) | Directorio donde se localiza la guía metodológica y el manual de la aplicación SIMPCCe.
 | [notebooks](https://github.com/IHCantabria/SIMPCCe/tree/main/notebooks) |  Jupyter notebooks donde se realiza un ejemplo de aplicación y que puede ser utilizado para realizar cualquier estudio.
-| [app](https://github.com/IHCantabria/SIMPCCe/releases/download/v1.0.0/SIMPCCe-Windows.exe) |  Enlace de descarga de la aplicación
-| [Manual SIMPCCe](https://www.fundacioncanal.com/docs/guia_embalses_cbio_climatico_FundCanal_2022.pdf#page=122) |  Enlace a la parte de la guía donde se encuentra el manual de la aplicación
 
 ## Requerimientos para el uso de la librería SIMPCCe
 
@@ -76,6 +75,15 @@ La versión original de la librería y aplicación ha sido desarrollada por:
 + Manuel del Jesus
 
 ## Licencia
+La aplicación informática SIMPCCe ha sido desarrollada por el Instituto de Hidráulica ambiental de Cantabria (IHC) como
+herramienta complementaria a esta guía. Está vinculada al encargo recibido de la Fundación Canal para el desarrollo de la Guía metodológica para la estimación de aportaciones mínimas a embalses en el contexto de cambio climático,
+pero fuera de su alcance. En consecuencia, la Fundación Canal no ostenta respecto de la misma ninguna titularidad, atribución, ni
+ningún tipo de responsabilidad.
+ 
+IH Cantabria permite el acceso a esta aplicación con el fin de facilitar la utilización práctica de la guía, si bien no otorga, respecto de la
+misma, garantía de ningún tipo, en particular, sobre su funcionamiento ni los resultados que genere. La aplicación no va a ser objeto
+de soporte ni de mantenimiento. En atención a lo expuesto, el desarrollador declina toda responsabilidad sobre la información que
+la aplicación pueda generar y el uso para el que ésta pudiera utilizarse.
 
 Este programa es software libre: puede redistribuirlo y/o modificarlo bajo los términos de la Licencia Pública General GNU publicada por la Fundación para el Software Libre, ya sea la versión 3 de la Licencia, o (a su elección) cualquier versión posterior.
 
