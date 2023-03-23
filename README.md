@@ -26,7 +26,7 @@ Además de la creación de la librería SIMPCCe se ha desarrollado una aplicaci�
 | [app](https://github.com/IHCantabria/SIMPCCe/releases/download/v1.0.0/SIMPCCe-Windows.exe) |  Enlace de descarga de la aplicación
 | [Manual SIMPCCe](https://www.fundacioncanal.com/docs/guia_embalses_cbio_climatico_FundCanal_2022.pdf#page=122) |  Enlace a la parte de la guía donde se encuentra el manual de la aplicación
 
-## Requerimientos
+## Requerimientos para el uso de la librería SIMPCCe
 
 Los scripts y cuadernos (jupyter) se proporcionan en [Python](https://www.python.org/) tara asegurar la reproducibilidad y reutilización de los resultados. La forma más sencilla de cumplir con todos estos requisitos es utilizando un entorno dedicado de [conda](https://docs.conda.io) , que se puede instalar fácilmente mediante la ejecución de la siguientes líneas de comando y la descarga o el clonado de la librería para acceder al [fichero  yml](https://github.com/IHCantabria/SIMPCCe/blob/main/environment.yml) que permitirá instalar todas las librerías necesaria para la utilización de la librería SIMPCCe
 
