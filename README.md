@@ -24,6 +24,7 @@ Además de la creación de la librería SIMPCCe se ha desarrollado una aplicaci�
 | [doc](https://www.fundacioncanal.com/docs/guia_embalses_cbio_climatico_FundCanal_2022.pdf) | Directorio donde se localiza la guía metodológica y el manual de la aplicación SIMPCCe.
 | [notebooks](https://github.com/IHCantabria/SIMPCCe/tree/main/notebooks) |  Jupyter notebooks donde se realiza un ejemplo de aplicación y que puede ser utilizado para realizar cualquier estudio.
 | [app](https://github.com/IHCantabria/SIMPCCe/releases/download/v1.0.0/SIMPCCe-Windows.exe) |  Enlace de descarga de la aplicación
+| [Manual SIMPCCe](https://www.fundacioncanal.com/docs/guia_embalses_cbio_climatico_FundCanal_2022.pdf#page=122) |  Enlace a la parte de la guía donde se encuentra el manual de la aplicación
 
 ## Requerimientos
 
