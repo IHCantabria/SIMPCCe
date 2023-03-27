@@ -77,7 +77,7 @@ La versión original de la librería y aplicación ha sido desarrollada por:
 ## Contacto
 Para cualquier consulta o ayuda pongase en contacto a través del siguiente email
 
-info@ihcantabria.com
+simpcce@ihcantabria.com
 
 ## Licencia
 La aplicación informática SIMPCCe ha sido desarrollada por el Instituto de Hidráulica ambiental de Cantabria (IHC) como
