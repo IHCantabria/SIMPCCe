@@ -75,7 +75,7 @@ La versión original de la librería y aplicación ha sido desarrollada por:
 + Manuel del Jesus
 
 ## Contacto
-Para cualquier consulta o ayuda pongase en contacto a través del siguiente email
+Para cualquier consulta o ayuda póngase en contacto a través del siguiente email
 
 simpcce@ihcantabria.com
 
