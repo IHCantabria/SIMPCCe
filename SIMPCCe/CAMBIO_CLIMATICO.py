@@ -90,7 +90,8 @@ class Climate_Change(object):
                     files = glob.glob(self.path_data+'/AEMET/CAMBIO_CLIMATICO/'+var+'/'+sc+'/'+var+'_'+m+'*')
 
                     if os.path.exists(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+name+'/'+name+'_month_CORDEX_'+scenario+'_'+m+'_'+'r1i1p1.csv'):
-                        continue
+                        Dataframe = pd.read_csv(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+name+'/'+name+'_month_CORDEX_'+scenario+'_'+m+'_'+'r1i1p1.csv',
+                                                index_col=0, parse_dates=True)
                     else:
                         os.makedirs(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+name+'/',exist_ok=True)
                         for i,ii in enumerate(tqdm.tqdm(files)):
@@ -117,22 +118,19 @@ class Climate_Change(object):
                                 Dataframe.loc[str(date_time_obj.date()),:] = ds.ReadAsArray().T[px,py]
                             except:
                                 continue
-                        if sc=='HIST':
-                            dictionary_Hist[name][m] = Dataframe
-                        else:
-                             dictionary_CC[name][scenario][m] = Dataframe
-                            
-                            
                         Dataframe.to_csv(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+name+'/'+name+'_month_CORDEX_'+scenario+'_'+m+'_'+'r1i1p1.csv')
-                        
-        if os.path.exists(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+"dict_hist.pickle")==False:
-            pickle_out = open(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+"dict_hist.pickle","wb")
-            pickle.dump(dictionary_Hist, pickle_out)
-            pickle_out.close()
+                    if sc=='HIST':
+                        dictionary_Hist[name][m] = Dataframe
+                    else:
+                         dictionary_CC[name][scenario][m] = Dataframe
+                            
+        pickle_out = open(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+"dict_hist.pickle","wb")
+        pickle.dump(dictionary_Hist, pickle_out)
+        pickle_out.close()
 
-            pickle_out = open(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+"dict_CC.pickle","wb")
-            pickle.dump(dictionary_CC, pickle_out)
-            pickle_out.close()
+        pickle_out = open(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+"dict_CC.pickle","wb")
+        pickle.dump(dictionary_CC, pickle_out)
+        pickle_out.close()
                         
                         
     def correccion_sesgo(self):
