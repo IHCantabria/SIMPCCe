@@ -154,7 +154,8 @@ class Climate_Change(object):
                 Serie_hist = Serie_hist.interpolate(method='linear', axis=1).ffill().bfill()
                 Serie_hist.index = Serie_hist.index.date - pd.offsets.MonthBegin(1)
                 serie_raw  = pd.read_csv(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+var+'/'+var+'_month_CORDEX_historical_'+m+'_'+'r1i1p1.csv',index_col=0,parse_dates=True)
-                
+                if var == 'Prec':
+                    serie_raw[serie_raw<=0.1] = 0.11
                 Serie_hist_correc     = pd.DataFrame(index=pd.date_range(start='1976-01-01', end='2005-12-31', freq='M'),columns = self.puntos_cuenca.index)
                 Serie_hist_correc.index = Serie_hist_correc.index.date - pd.offsets.MonthBegin(1)
                 
@@ -189,8 +190,9 @@ class Climate_Change(object):
                     else:
                     
                         Serie_CC = pd.read_csv(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+var+'/'+var+'_month_CORDEX_'+rcp+'_'+m+'_'+'r1i1p1.csv',index_col=0,parse_dates=True)
-
-                        Serie_CC_correc     = pd.DataFrame(index=pd.date_range(start='2006-01-01', end='2100-12-31', freq='M'),columns = self.puntos_cuenca.index)
+                        if var == 'Prec':
+                            Serie_CC[Serie_CC<=0.1] = 0.11
+			Serie_CC_correc     = pd.DataFrame(index=pd.date_range(start='2006-01-01', end='2100-12-31', freq='M'),columns = self.puntos_cuenca.index)
                         Serie_CC_correc.index = Serie_CC_correc.index.date - pd.offsets.MonthBegin(1)
 
                         for c in self.puntos_cuenca.index:
