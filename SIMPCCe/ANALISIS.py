@@ -469,9 +469,9 @@ def serie_climate_change(path_project,var):
     dataframe_rcp_45_year.rolling(3,min_periods=1, center=True).mean().median(axis=1).plot(kind='line',color='blue',ax=ax,label='RCP 4.5')
     dataframe_rcp_85_year.rolling(3,min_periods=1, center=True).mean().median(axis=1).plot(kind='line',color='red',ax=ax,label='RCP 8.5')
     ax.vlines('2006-01-01', vmin, vmax, 'k', linestyle = '-', linewidth = 2)
-    ax.fill_between(dataframe_hist_year.index, dataframe_hist_year.quantile(0.25,axis=1),dataframe_hist_year.quantile(0.75,axis=1), color='darkgray', alpha=0.5)
-    ax.fill_between(dataframe_rcp_45_year.index, dataframe_rcp_45_year.quantile(0.25,axis=1),dataframe_rcp_45_year.quantile(0.75,axis=1), color='blue', alpha=0.5)
-    ax.fill_between(dataframe_rcp_85_year.index, dataframe_rcp_85_year.quantile(0.25,axis=1),dataframe_rcp_85_year.quantile(0.75,axis=1), color='red', alpha=0.5)
+    ax.fill_between(dataframe_hist_year.index, dataframe_hist_year.astype(float).quantile(0.25,axis=1),dataframe_hist_year.quantile(0.75,axis=1), color='darkgray', alpha=0.5)
+    ax.fill_between(dataframe_rcp_45_year.index, dataframe_rcp_45_year.astype(float).quantile(0.25,axis=1),dataframe_rcp_45_year.quantile(0.75,axis=1), color='blue', alpha=0.5)
+    ax.fill_between(dataframe_rcp_85_year.index, dataframe_rcp_85_year.astype(float).quantile(0.25,axis=1),dataframe_rcp_85_year.quantile(0.75,axis=1), color='red', alpha=0.5)
     ax.set_ylim(vmin,vmax)
     ax.legend(loc = 2)
     if var=='Prec':
