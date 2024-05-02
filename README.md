@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7009927.svg)](https://doi.org/10.5281/zenodo.7009927)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7009927.svg)](https://doi.org/10.5281/zenodo.11103323) 
 
 # SIMPCCe: Simulador de Pronósticos de Cambio Climático en Embalses
 
