@@ -38,10 +38,6 @@ def download_data(path_output,url):
                 print(f"Download {pct_done} % done, avg speed {speed} kbps")
                 last_print = time.time()
                 
-import os
-import requests
-import shutil
-
 def _download_AEMET_CC(path_output):
     print('--- Descargando datos de cambio climático AEMET ---')
     var = ['PRCPTOT', 'TXMM', 'TNMM']

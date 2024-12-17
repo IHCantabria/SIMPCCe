@@ -198,8 +198,6 @@ class AEMET(object):
           vector_bound_coordinates.bounds.maxy.max()]
         
         
-        #[image, xmin, xmax, ymin, ymax] = google_maps(lon_C=np.mean([np.min(lons),np.max(lons)]), lat_C =np.mean([np.min(lats),np.max(lats)]) ,size=[640, 640], zoom=10, scale=1, api_key = 'AIzaSyDAYDmAVdeZ3LOthK1_25qRWr7L25VomQY')
-        
         import cartopy.feature
 
         fig, ax = plt.subplots(figsize=(7,5),subplot_kw=dict(projection=ccrs.PlateCarree()))
