@@ -9,3 +9,12 @@ SIMPCCe/.ipynb_checkpoints/ANALISIS-checkpoint.py
 SIMPCCe/.ipynb_checkpoints/CAMBIO_CLIMATICO-checkpoint.py
 SIMPCCe/.ipynb_checkpoints/REGRESION-checkpoint.py
 SIMPCCe/.ipynb_checkpoints/utils-checkpoint.py
+SIMPCCe/__pycache__/AEMET.cpython-39.pyc
+SIMPCCe/__pycache__/ANALISIS.cpython-39.pyc
+SIMPCCe/__pycache__/CAMBIO_CLIMATICO.cpython-39.pyc
+SIMPCCe/__pycache__/CONFIG_PROJECT.cpython-39.pyc
+SIMPCCe/__pycache__/CORRECCION_SESGO.cpython-39.pyc
+SIMPCCe/__pycache__/DOWNLOAD_DATA.cpython-39.pyc
+SIMPCCe/__pycache__/REGRESION.cpython-39.pyc
+SIMPCCe/__pycache__/SIMPA.cpython-37.pyc
+SIMPCCe/__pycache__/utils.cpython-39.pyc

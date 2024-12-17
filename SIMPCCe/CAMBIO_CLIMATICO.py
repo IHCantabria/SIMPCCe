@@ -190,9 +190,11 @@ class Climate_Change(object):
                     else:
                     
                         Serie_CC = pd.read_csv(self.path_project+'/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/'+var+'/'+var+'_month_CORDEX_'+rcp+'_'+m+'_'+'r1i1p1.csv',index_col=0,parse_dates=True)
+                        
                         if var == 'Prec':
                             Serie_CC[Serie_CC<=0.1] = 0.11
-			Serie_CC_correc     = pd.DataFrame(index=pd.date_range(start='2006-01-01', end='2100-12-31', freq='M'),columns = self.puntos_cuenca.index)
+			            
+                        Serie_CC_correc     = pd.DataFrame(index=pd.date_range(start='2006-01-01', end='2100-12-31', freq='M'),columns = self.puntos_cuenca.index)
                         Serie_CC_correc.index = Serie_CC_correc.index.date - pd.offsets.MonthBegin(1)
 
                         for c in self.puntos_cuenca.index:

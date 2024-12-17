@@ -100,8 +100,8 @@ class AEMET(object):
         lon_C = transform(inProj,outProj,X,Y)[0]
         lat_C = transform(inProj,outProj,X,Y)[1]
         
-        time=pd.date_range(start='1950-01-01',end='2015-12-31',freq='M')
-        reference_time = pd.Timestamp("1950-01-01")
+        time=pd.date_range(start='1971-01-01',end='2015-12-31',freq='M')
+        reference_time = pd.Timestamp("1971-01-01")
         
         # Extracción de la cuenca vertiente a un punto dado
         grid    = Grid.from_raster(self.path_project+'02_GIS/Str.tif')
@@ -252,10 +252,15 @@ class AEMET(object):
         Temperatura_Minima  = pd.DataFrame(index = time, columns=np.arange(1, len(coordenadas_basin)+1))
         
         
-        prec_nc   = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_MM_010reg_aa3d_pr.nc')
-        tasmax_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_MM_010reg_aa3d_tasmax.nc')
-        tasmin_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_MM_010reg_aa3d_tasmin.nc')
-        
+        prec_day_nc   = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_pr.nc')
+        tasmax_day_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_tasmax.nc')
+        tasmin_day_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_tasmin.nc')
+
+        prec_nc   = prec_day_nc.resample(time='M').sum(min_count=1)
+        tasmax_nc = tasmax_day_nc.resample(time='M').mean()
+        tasmin_nc = tasmin_day_nc.resample(time='M').mean()
+
+
         for s in range(len(coordenadas_basin)):
             mx = lons[s]
             my = lats[s]
@@ -273,8 +278,6 @@ class AEMET(object):
         Temperatura_Minima.to_csv(self.path_project+'01_CLIMA/Temperatura_Minima.csv')
         
         fig.tight_layout()
-        
-        
         
         
         from matplotlib.patches import Polygon, Circle

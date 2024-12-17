@@ -15,6 +15,7 @@ import requests
 import time
 import patoolib
 import yaml
+import zipfile
 
 
 def download_data(path_output,url):
@@ -37,40 +38,65 @@ def download_data(path_output,url):
                 print(f"Download {pct_done} % done, avg speed {speed} kbps")
                 last_print = time.time()
                 
-def _download_AEMET_CC(path_output):
-        print('---Descargando datos de cambio climático AEMET---')
-        import requests
-        var = ['PRCPTOT','TXMM','TNMM']
-        escenarios = ['HIST','RCP45','RCP85']
-        if os.path.exists(path_output+'/AEMET/CAMBIO_CLIMATICO/')==False:
-            os.makedirs(path_output+'/AEMET/CAMBIO_CLIMATICO/')
-        for v in var:
-            if os.path.exists(path_output+'/AEMET/CAMBIO_CLIMATICO/'+v+'/')==False:
-                os.makedirs(path_output+'/AEMET/CAMBIO_CLIMATICO/'+v+'/',exist_ok=True)
-            for sc in escenarios:
-                if os.path.exists(path_output+'/AEMET/CAMBIO_CLIMATICO/'+v+'/'+sc+'/')==False:
-                    os.makedirs(path_output+'/AEMET/CAMBIO_CLIMATICO/'+v+'/'+sc+'/',exist_ok=True)
+import os
+import requests
+import shutil
 
-                url_CC_AEMET = 'http://www.aemet.es/documentos_d/serviciosclimaticos/cambio_climat/datos_mensuales/'
-                url = url_CC_AEMET+'R_'+v+'_'+sc+'_COR_SIG.zip'
-                name = path_output+'/AEMET/CAMBIO_CLIMATICO/'+v+'/'+sc+'/'+'R_'+v+'_'+sc+'_COR_SIG.zip'
-                print('Descargando variable: '+v +' Ecenario: '+sc)
-                not_downloaded = True
-                nnn=0
-                while not_downloaded:
-                    try:
-                        print(url)
-                        #urllib.request.urlretrieve(url0,path_output+'/'+var+'/'+var+'_day_BCSD_'+rcp+'_r1i1p1_'+mod+'_'+str(t)+'.nc')
-                        download_data(name,url)
-                        shutil.unpack_archive(name, path_output+'/AEMET/CAMBIO_CLIMATICO/'+'/'+v+'/'+sc+'/')
-                        os.remove(name)
-                        not_downloaded = False
-                    except:
-                        print("Fallo de conexión...Reestableciendo")
-                        nnn=nnn+1
-                        if nnn>3:
-                            print('Compruebe su conexión a internet, no es posible realizar la descarga')
-                            break
+def _download_AEMET_CC(path_output):
+    print('--- Descargando datos de cambio climático AEMET ---')
+    var = ['PRCPTOT', 'TXMM', 'TNMM']
+    escenarios = ['HIST', 'RCP45', 'RCP85']
+
+    # Crear estructura de carpetas si no existen
+    base_path = os.path.join(path_output, 'AEMET/CAMBIO_CLIMATICO/')
+    os.makedirs(base_path, exist_ok=True)
+
+    for v in var:
+        var_path = os.path.join(base_path, v)
+        os.makedirs(var_path, exist_ok=True)
+        for sc in escenarios:
+            sc_path = os.path.join(var_path, sc)
+            os.makedirs(sc_path, exist_ok=True)
+
+            # Definir URL y nombre del archivo ZIP
+            url_CC_AEMET = 'http://www.aemet.es/documentos_d/serviciosclimaticos/cambio_climat/datos_mensuales/'
+            zip_file = f'R_{v}_{sc}_COR_SIG.zip'
+            url = url_CC_AEMET + zip_file
+            local_zip_path = os.path.join(sc_path, zip_file)
+
+            # Verificar si ya existen archivos descomprimidos en la carpeta destino
+            if any(file.endswith('.txt') for file in os.listdir(sc_path)):
+                print(f'Archivos descomprimidos ya existen en: {sc_path}. Se omite la descarga.')
+                continue
+
+            print(f'Descargando variable: {v}, Escenario: {sc}')
+            not_downloaded = True
+            nnn = 0
+
+            while not_downloaded:
+                try:
+                    print(f'Descargando desde: {url}')
+                    # Descargar archivo
+                    with requests.get(url, stream=True) as r:
+                        r.raise_for_status()
+                        with open(local_zip_path, 'wb') as f:
+                            shutil.copyfileobj(r.raw, f)
+
+                    # Descomprimir el archivo y eliminar el ZIP
+                    shutil.unpack_archive(local_zip_path, sc_path)
+                    os.remove(local_zip_path)  # Eliminar archivo ZIP descargado
+                    print(f'Archivo {zip_file} descargado y descomprimido correctamente.')
+                    not_downloaded = False
+
+                except Exception as e:
+                    print(f"Fallo de conexión: {e}. Reintentando...")
+                    nnn += 1
+                    if nnn > 3:
+                        print(f'Error: No se pudo descargar el archivo {zip_file}. Verifique su conexión.')
+                        break
+
+    print('--- Descarga y extracción completadas ---')
+
                             
                             
 def _download_SIMPA(path_output):
@@ -127,42 +153,58 @@ def _download_SIMPA(path_output):
         os.remove(name)
     print('***********Descarga finalizada**************')
 
-
-
 def _descarga_datos_SPAIN02(path_output):
     os.chdir(path_output)
-    import patoolib
+    # Comprobar si ya existen archivos descargados
     if os.path.exists('./AEMET/SPAIN02/Spain02_v5.0_MM_010reg_aa3d_pr.nc'):
         print('#### Ficheros Existentes ####')
     else:
-        url = 'http://meteo.unican.es/work/datasets/Spain02_v5.0_010reg_aa3d.tar.gz'
-        os.makedirs('./AEMET/',exist_ok=True)
-        os.makedirs('./AEMET/SPAIN02/',exist_ok=True)
-        headers = requests.head(url, headers={'accept-encoding': ''}).headers
-        r = requests.get(url, allow_redirects=True, stream=True,  verify=False)
-        file_size = int(headers['Content-Length'])
-        downloaded = 0
-        start = last_print = time.time()
-        name  = './AEMET/SPAIN02/'+url.split('/')[-1]
-        with open(name, 'wb') as fp:
-            for chunk in r.iter_content(chunk_size=4096 * 64):
-                downloaded += fp.write(chunk)
-                now = time.time()
-                if now - last_print >= 1:
-                    pct_done = round(downloaded / file_size * 100)
-                    speed = round(downloaded / (now - start) / 1024)
-                    print(f"Download {pct_done} % done, avg speed {speed} kbps")
-                    last_print = time.time()
-        patoolib.extract_archive(name, outdir='./AEMET/SPAIN02/')
-        allfiles = os.listdir('./AEMET/SPAIN02/Spain02_v5.0_010reg_aa3d/')
+        # Nueva URL base para la descarga de datos mensuales desde AEMET
+        url_base = 'https://www.aemet.es/documentos/es/serviciosclimaticos/cambio_climat/datos_diarios/dato_observacional/rejilla_20km/v5/'
+        archivos = [
+            'Spain02_v5.0_DD_010reg_aa3d_tasmin.nc.zip',
+            'Spain02_v5.0_DD_010reg_aa3d_tasmax.nc.zip',
+            'Spain02_v5.0_DD_010reg_aa3d_pr.nc.zip',
+        ]
 
-        for f in allfiles:
-            shutil.move('./AEMET/SPAIN02/Spain02_v5.0_010reg_aa3d/' + f, './AEMET/SPAIN02/' + f)
-        os.remove('./AEMET/SPAIN02/Spain02_v5.0_010reg_aa3d.tar.gz')
-        os.rmdir('./AEMET/SPAIN02/Spain02_v5.0_010reg_aa3d/')
-        print('***********Descarga finalizada**************')
-            
-            
+        os.makedirs('./AEMET/', exist_ok=True)
+        os.makedirs('./AEMET/SPAIN02/', exist_ok=True)
+
+        for archivo in archivos:
+            nombre_archivo = os.path.basename(archivo)
+            local_file = os.path.join('./AEMET/SPAIN02/', nombre_archivo)
+
+            if os.path.exists(local_file.replace('.zip', '')):
+                print(f'Archivo {nombre_archivo.replace(".zip", "")} ya existe. Se omite la descarga.')
+                continue
+
+            url = url_base + archivo
+            print(f'Descargando {nombre_archivo} desde {url}...')
+
+            # Realiza la solicitud HTTP para descargar el archivo
+            with requests.get(url, stream=True, verify=False) as r:
+                if r.status_code != 200:
+                    print(f"Error al descargar {nombre_archivo}: Estado {r.status_code}")
+                    continue
+
+                with open(local_file, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=4096 * 64):
+                        f.write(chunk)
+            print(f'Archivo {nombre_archivo} descargado correctamente.')
+
+            # Extraer el archivo ZIP directamente a la carpeta de destino
+            print(f'Extrayendo {nombre_archivo}...')
+            with zipfile.ZipFile(local_file, 'r') as zip_ref:
+                for file in zip_ref.namelist():
+                    zip_ref.extract(file, './AEMET/SPAIN02/')
+                    print(f'Extraído: {file}')
+
+            # Eliminar el archivo ZIP
+            os.remove(local_file)
+            print(f'Archivo {nombre_archivo} eliminado correctamente.')
+
+        print('*********** Descarga y extracción finalizadas **************')
+
             
 def descarga_AEMET_SIMPA(path_output,path_project,name_project):
     """
