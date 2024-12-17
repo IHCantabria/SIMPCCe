@@ -250,9 +250,9 @@ class AEMET(object):
         Temperatura_Minima  = pd.DataFrame(index = time, columns=np.arange(1, len(coordenadas_basin)+1))
         
         
-        prec_day_nc   = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_pr.nc')
-        tasmax_day_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_tasmax.nc')
-        tasmin_day_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_tasmin.nc')
+        prec_day_nc   = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_pr.nc')/10
+        tasmax_day_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_tasmax.nc')/10
+        tasmin_day_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_tasmin.nc')/10
 
         prec_nc   = prec_day_nc.resample(time='M').sum(min_count=1)
         tasmax_nc = tasmax_day_nc.resample(time='M').mean()
