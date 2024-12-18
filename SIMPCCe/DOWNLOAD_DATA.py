@@ -95,59 +95,76 @@ def _download_AEMET_CC(path_output):
 
                             
                             
+import os
+import requests
+import patoolib
+import platform
+import time
+
 def _download_SIMPA(path_output):
-    import requests
-    import patoolib
-    import platform
     sistema_operativo = platform.system()
-    print('---Descargando datos de Aportaciones SIMPA---')
+    print('--- Descargando datos de Aportaciones SIMPA ---')
 
-    if os.path.exists(path_output+'/SIMPA/Aportaciones/')==False:
-        os.makedirs(path_output+'/SIMPA/',exist_ok=True)
-        os.makedirs(path_output+'/SIMPA/Aportaciones/',exist_ok=True)
+    # Crear directorios necesarios
+    aportaciones_path = os.path.join(path_output, 'SIMPA', 'Aportaciones')
+    os.makedirs(aportaciones_path, exist_ok=True)
 
-    for i in range(1940,2016,10):
-        if i==2010:
-            url = 'http://ceh-flumen64.cedex.es/descargas/ERH_Entregamayo2019B/Aportacion_acumulada_'+str(i)[-2:]+'_'+str(i+6)[-2:]+'.rar'
+    # Rango de años para los archivos
+    for i in range(1940, 2016, 10):
+        # Construir URL según el año
+        if i == 2010:
+            url = f'http://ceh-flumen64.cedex.es/descargas/ERH_Entregamayo2019B/Aportacion_acumulada_{str(i)[-2:]}_{str(i+6)[-2:]}.rar'
         else:
-            url = 'http://ceh-flumen64.cedex.es/descargas/ERH_Entregamayo2019B/Aportacion_acumulada_'+str(i)[-2:]+'_'+str(i+10)[-2:]+'.rar'
+            url = f'http://ceh-flumen64.cedex.es/descargas/ERH_Entregamayo2019B/Aportacion_acumulada_{str(i)[-2:]}_{str(i+10)[-2:]}.rar'
 
+        # Verificar si el archivo ya ha sido procesado
+        asc_file = os.path.join(aportaciones_path, f'acaesh{i}_10.asc')
+        if os.path.exists(asc_file):
+            print(f'Archivo {asc_file} ya existe. Se omite la descarga.')
+            continue
 
+        # Nombre del archivo descargado
+        file_name = os.path.join(aportaciones_path, os.path.basename(url))
+        download_successful = False
 
-        if os.path.exists(path_output+'/SIMPA/Aportaciones/'+'acaesh'+str(i)+'_10.asc'):
-                continue
-        else:
-            name = path_output+'/SIMPA/Aportaciones/'+url.split('/')[-1]
-
-            downloaded = 0
-            start = last_print = time.time()
-            not_downloaded = True
-            nnn=0
-            while not_downloaded:
-                try:
-                    print(url)
-                    #urllib.request.urlretrieve(url0,path_output+'/'+var+'/'+var+'_day_BCSD_'+rcp+'_r1i1p1_'+mod+'_'+str(t)+'.nc')
-                    download_data(name,url)
-                    not_downloaded = False
-                except:
-                    print("Fallo de conexión...Reestableciendo")
-                    nnn=nnn+1
-                    if nnn>10:
-                        print('Compruebe su conexión a internet, no es posible realizar la descarga')
-                        break
-            #shutil.unpack_archive(name, path_output+'/SIMPA/Aportaciones/')
-            #os.remove(name)
+        # Descargar el archivo con múltiples intentos
+        for attempt in range(1, 6):
             try:
-                if sistema_operativo=='Windows':
-                    if os.system(sys._MEIPASS+'/7z/7z.exe e -y '+name+' -o'+path_output+'/SIMPA/Aportaciones/')!=0:
-                        raise ValueError('Verifique que tiene todos los permisos en el equipo')   
-                else:
-                    patoolib.extract_archive(name, outdir=path_output+'/SIMPA/Aportaciones/')
-            except:
-                raise ValueError('Verifique si en su equipo está instalado algún programa para descomprimir ficheros RAR')
-                raise ValueError('Verifique si el equipo tiene suficiente espacio')
-        os.remove(name)
-    print('***********Descarga finalizada**************')
+                print(f'Descargando {url} (Intento {attempt})...')
+                with requests.get(url, stream=True, timeout=30) as response:
+                    response.raise_for_status()
+                    with open(file_name, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                print(f'Archivo {file_name} descargado correctamente.')
+                download_successful = True
+                break
+            except requests.RequestException as e:
+                print(f'Error en la descarga: {e}')
+                time.sleep(5)
+
+        if not download_successful:
+            print(f'No se pudo descargar el archivo {url}. Verifique su conexión a internet.')
+            continue
+
+        # Extraer el archivo descargado usando patoolib
+        try:
+            print(f'Extrayendo {file_name} con patoolib...')
+            patoolib.extract_archive(file_name, outdir=aportaciones_path)
+            print(f'Archivo {file_name} extraído correctamente.')
+        except Exception as e:
+            print(f'Error al extraer {file_name}: {e}')
+            continue
+
+        # Eliminar el archivo descargado tras la extracción
+        try:
+            os.remove(file_name)
+            print(f'Archivo {file_name} eliminado tras la extracción.')
+        except OSError as e:
+            print(f'Error al eliminar el archivo {file_name}: {e}')
+
+    print('*********** Descarga y extracción finalizadas **************')
+
 
 def _descarga_datos_SPAIN02(path_output):
     os.chdir(path_output)

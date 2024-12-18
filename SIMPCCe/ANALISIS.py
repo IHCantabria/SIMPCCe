@@ -389,7 +389,7 @@ def serie_climate_change(path_project,var):
     pickle_in_CC = open(path_project+"/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/dict_CC.pickle","rb")
     dict_CC = pickle.load(pickle_in_CC)
 
-    dataframe_hist=pd.DataFrame(index=pd.date_range(start='1971-01-01',end='2005-12-31',freq='M'),columns=models)
+    dataframe_hist=pd.DataFrame(index=pd.date_range(start='1950-01-01',end='2005-12-31',freq='M'),columns=models)
     dataframe_hist.index = dataframe_hist.index.date - pd.offsets.MonthBegin(1)
 
     dataframe_rcp_45=pd.DataFrame(index=pd.date_range(start='2006-01-01',end='2100-12-31',freq='M'),columns=models)
@@ -651,7 +651,7 @@ def fig_SPI(path_project):
     pickle_in_CC = open(path_project+"/05_CAMBIO_CLIMATICO/01_CLIMA/CORDEX/dict_CC.pickle","rb")
     dict_CC = pickle.load(pickle_in_CC)
 
-    dataframe_hist=pd.DataFrame(index=pd.date_range(start='1971-01-01',end='2005-12-31',freq='M'),columns=models)
+    dataframe_hist=pd.DataFrame(index=pd.date_range(start='1950-01-01',end='2005-12-31',freq='M'),columns=models)
     dataframe_hist.index = dataframe_hist.index.date - pd.offsets.MonthBegin(1)
 
     dataframe_rcp_45=pd.DataFrame(index=pd.date_range(start='2006-01-01',end='2100-12-31',freq='M'),columns=models)
