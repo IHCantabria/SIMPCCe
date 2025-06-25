@@ -27,6 +27,7 @@ from shapely import geometry, ops
 import fiona
 
 from pysheds.grid import Grid
+import xarray as xr
 
 def read_asc(file):
     name = list()
@@ -72,25 +73,28 @@ class SIMPA(object):
         Flow: csv. Fichero csv con los resultados extraidos.
 
         """
-        time=pd.date_range(start='1940-10-01',end='2015-12-31',freq='M')
+        time=pd.date_range(start='1940-10-01',end='2018-09-30',freq='M')
         reference_time = pd.Timestamp("1940-10-01")
 
         Flow = pd.DataFrame(index = time, columns=coord.index)
-        for i,ii in enumerate(tqdm.tqdm(time)):
+        ds = xr.open_dataset(self.path_simpa+'/Aportaciones/Aportaciones_SIMPA_CEDEX.nc')
+        for s, ss in enumerate(coord.index):
+            Flow.loc[:,ss] = ds.aportacion.sel(y= coord.iloc[s].loc['COORDY'], x=coord.iloc[s].loc['COORDX'], method='nearest')
+        #for i,ii in enumerate(tqdm.tqdm(time)):
             #flow[:,:,i]=np.flipud(np.loadtxt(path+'acaes'+str(ii.year)+'_'+str(ii.month)+'.asc',skiprows=6))
-            ds = gdal.Open(self.path_simpa+'/Aportaciones/acaesh'+str(ii.year)+'_'+str(ii.month)+'.asc', gdal.GA_ReadOnly)
-            gt   = ds.GetGeoTransform()
+            # ds = gdal.Open(self.path_simpa+'/Aportaciones/acaesh'+str(ii.year)+'_'+str(ii.month)+'.asc', gdal.GA_ReadOnly)
+            # gt   = ds.GetGeoTransform()
 
-            for s, ss in enumerate(coord.index):
-                value_month = []
-                mx = coord.iloc[s].loc['COORDX']
-                my = coord.iloc[s].loc['COORDY']
+            # for s, ss in enumerate(coord.index):
+            #     value_month = []
+            #     mx = coord.iloc[s].loc['COORDX']
+            #     my = coord.iloc[s].loc['COORDY']
 
-                px = floor((mx - gt[0]) / gt[1]) #x pixel
-                py = floor((my - gt[3]) / gt[5]) #y pixel
+            #     px = floor((mx - gt[0]) / gt[1]) #x pixel
+            #     py = floor((my - gt[3]) / gt[5]) #y pixel
 
-                intval=ds.ReadAsArray(px,py,1,1)
-                Flow.loc[ii,ss] = intval[0][0]
-            del ds
+            #     intval=ds.ReadAsArray(px,py,1,1)
+            #     Flow.loc[ii,ss] = intval[0][0]
+            # del ds
 
         Flow.to_csv(path_output+'/Aportaciones.csv')

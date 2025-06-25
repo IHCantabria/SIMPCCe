@@ -100,8 +100,8 @@ class AEMET(object):
         lon_C = transform(inProj,outProj,X,Y)[0]
         lat_C = transform(inProj,outProj,X,Y)[1]
         
-        time=pd.date_range(start='1971-01-01',end='2015-12-31',freq='M')
-        reference_time = pd.Timestamp("1971-01-01")
+        time=pd.date_range(start='1950-01-01',end='2015-12-31',freq='M')
+        reference_time = pd.Timestamp("1950-01-01")
         
         # Extracción de la cuenca vertiente a un punto dado
         grid    = Grid.from_raster(self.path_project+'02_GIS/Str.tif')
@@ -143,7 +143,7 @@ class AEMET(object):
         dist=np.sqrt((x_2-coordenadas_river.T[0])**2+(y_2-coordenadas_river.T[1])**2)
 
         catch = grid.catchment(x=(coordenadas_river[np.argmin(dist)][0]-cellsize/2), y=(coordenadas_river[np.argmin(dist)][1]+cellsize/2),fdir=fdir, dirmap=dirmap, out_name='catch',
-               recursionlimit=150000, xytype='label', nodata=-1)
+               recursionlimit=150000, xytype='label', nodata=np.int32(-1))
         
 
         basin=np.flipud(np.array(catch).astype(float))
@@ -250,9 +250,9 @@ class AEMET(object):
         Temperatura_Minima  = pd.DataFrame(index = time, columns=np.arange(1, len(coordenadas_basin)+1))
         
         
-        prec_day_nc   = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_pr.nc')/10
-        tasmax_day_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_tasmax.nc')/10
-        tasmin_day_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_tasmin.nc')/10
+        prec_day_nc   = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_pr.nc')
+        tasmax_day_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_tasmax.nc')
+        tasmin_day_nc = xr.open_dataset(self.path_aemet+'/Spain02_v5.0_DD_010reg_aa3d_tasmin.nc')
 
         prec_nc   = prec_day_nc.resample(time='M').sum(min_count=1)
         tasmax_nc = tasmax_day_nc.resample(time='M').mean()

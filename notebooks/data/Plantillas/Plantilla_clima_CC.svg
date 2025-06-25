@@ -4288,8 +4288,8 @@
          x="237.40834"
          y="259.7157">Cambio Climático</tspan></text>
     <image
-       sodipodi:absref="C:\Users\navass\Desktop\Prueba_GUIAME\07_INFORME\Figuras\Incertidumbre_CC_Prec.png"
-       xlink:href="Incertidumbre_CC_Prec.png"
+       sodipodi:absref="C:\Users\navass\Desktop\Prueba_GUIAME\07_INFORME\Figuras\Incertidumbre_CC_pr.png"
+       xlink:href="Incertidumbre_CC_pr.png"
        width="107.76704"
        height="57.76733"
        preserveAspectRatio="none"
@@ -4297,8 +4297,8 @@
        x="2.8580432"
        y="96.239571" />
     <image
-       sodipodi:absref="C:\Users\navass\Desktop\Prueba_GUIAME\07_INFORME\Figuras\Incertidumbre_CC_Tmax.png"
-       xlink:href="Incertidumbre_CC_Tmax.png"
+       sodipodi:absref="C:\Users\navass\Desktop\Prueba_GUIAME\07_INFORME\Figuras\Incertidumbre_CC_tasmax.png"
+       xlink:href="Incertidumbre_CC_tasmax.png"
        width="106.81394"
        height="61.313686"
        preserveAspectRatio="none"
@@ -4306,8 +4306,8 @@
        x="4.516706"
        y="163.91566" />
     <image
-       sodipodi:absref="C:\Users\navass\Desktop\Prueba_GUIAME\07_INFORME\Figuras\Incertidumbre_CC_Tmin.png"
-       xlink:href="Incertidumbre_CC_Tmin.png"
+       sodipodi:absref="C:\Users\navass\Desktop\Prueba_GUIAME\07_INFORME\Figuras\Incertidumbre_CC_tasmin.png"
+       xlink:href="Incertidumbre_CC_tasmin.png"
        width="107.99606"
        height="55.698627"
        preserveAspectRatio="none"

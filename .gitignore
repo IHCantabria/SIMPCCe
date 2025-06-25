@@ -18,3 +18,5 @@ SIMPCCe/__pycache__/DOWNLOAD_DATA.cpython-39.pyc
 SIMPCCe/__pycache__/REGRESION.cpython-39.pyc
 SIMPCCe/__pycache__/SIMPA.cpython-37.pyc
 SIMPCCe/__pycache__/utils.cpython-39.pyc
+*.pyc
+*.pyc
