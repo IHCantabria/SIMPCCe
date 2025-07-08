@@ -19,6 +19,15 @@ from numpy import trapz
 from matplotlib.patches import Polygon
 #import pyeto
 
+def create_name(climate_change,var,rcp,m):
+    if climate_change=='CORDEX':
+        name_file_fut = f'{var}_month_CORDEX_{rcp}_{m[0]}_r1i1p1'
+    else:
+        name_file_fut = f'{var}_month_{m[0]}_{rcp}_{m[1]}_{m[2]}'
+    return name_file_fut
+
+
+
 def text(x, y, text,angle,fontsize,ax):
     ax.text(x, y, text,
             ha='center', va='top', weight='bold',backgroundcolor = 'white',rotation=angle,fontsize=fontsize)
@@ -483,3 +492,422 @@ def diagnosis_severidad_CC(I1_hist,I2_hist,I1_rcp45,I2_rcp45,I1_rcp85,I2_rcp85,t
        
     
     fig.legend(handles=[red_patch,grey1_patch,grey2_patch,blue_patch,hist[0],rcp45[0],rcp85[0]],ncol=1,fontsize=12,  bbox_to_anchor=[1.3, 0.95])
+
+
+def perturbate_serie_with_coeffs(serie_hist, serie_hist_mod, serie_fut, var_mean, var_CV):
+    # Asegura no ceros
+    serie_hist[serie_hist==0] = 0.0000001
+    serie_hist_mod[serie_hist_mod==0] = 0.0000001
+    serie_fut[serie_fut==0] = 0.0000001
+
+    # Cálculos base
+    xc = serie_hist.resample('Y').mean().values
+    x1 = xc / xc.mean()
+    x2 = ((x1-1)*(1+var_CV)) + 1
+    x3 = x2 * xc.mean() * (1+var_mean)
+
+    # Inicializa serie perturbada
+    serie_CC_real = pd.DataFrame(index=serie_fut.index, columns=['H3/mes'])
+
+    # Calcula Rm y dm mensuales
+    Rm = serie_fut.groupby(by = serie_fut.index.month).mean().values / serie_hist_mod.groupby(by = serie_hist_mod.index.month).mean().values
+    dm = serie_hist.groupby(by = serie_hist.index.month).mean().values / np.sum(serie_hist.groupby(by = serie_hist.index.month).mean().values)
+
+    # Aplica la perturbación mes a mes
+    y = 0
+    for i in range(0,len(serie_fut),12):
+        serie_CC_real.iloc[i:i+12,0] = (dm * Rm * 1/(np.sum(Rm * dm)) * x3[y]*12).flatten()
+        y += 1
+
+    return serie_CC_real
+
+def perturbate_and_save_all_models(path_project, serie_hist_user, climate_change, models, periodos_fut):
+    esce = ['ssp245','ssp585'] if climate_change == 'CMIP6' else ['rcp45','rcp85']
+
+    # Asegura no ceros en histórico
+    serie_hist = serie_hist_user.loc['1995':'2014']
+    serie_hist[serie_hist==0]= 0.0000001
+
+    for model in models:
+        print(f"\n🔹 Procesando modelo: {model}")
+        modelo_split = model.split("_")
+
+        # Lee serie histórica modelada
+        file_hist_mod = f"{path_project}/05_CAMBIO_CLIMATICO/02_APORTACIONES/{create_name(climate_change,'Aportaciones','historical',modelo_split)}.csv"
+        serie_hist_mod = pd.read_csv(file_hist_mod, index_col=0, parse_dates=True)
+        serie_hist_mod[serie_hist_mod==0]= 0.0000001
+
+        for scenario in esce:
+            print(f"   ➔ Escenario: {scenario}")
+            # Inicializa lista para concatenar periodos futuros perturbados de este escenario
+            series_futuras = []
+
+            for period in periodos_fut:
+                # Lee serie futura de este modelo, escenario y periodo
+                file_fut = f"{path_project}/05_CAMBIO_CLIMATICO/02_APORTACIONES/{create_name(climate_change,'Aportaciones',scenario,modelo_split)}.csv"
+                serie_fut = pd.read_csv(file_fut, index_col=0, parse_dates=True)
+                serie_fut = serie_fut.loc[period.split('_')[0]:period.split('_')[1]]
+                serie_fut[serie_fut<0]= 0.0000001
+
+                # Calcula coeficientes para este modelo, escenario y periodo
+                xc_m = serie_hist_mod.resample('Y').mean().values
+                xf_m = serie_fut.resample('Y').mean().values
+
+                var_mean = (xf_m.mean()-xc_m.mean())/xc_m.mean()
+                var_CV   = (np.std(xf_m)/np.mean(xf_m) - np.std(xc_m)/np.mean(xc_m)) / (np.std(xc_m)/np.mean(xc_m))
+
+                # Perturba
+                serie_CC_real = perturbate_serie_with_coeffs(serie_hist.copy(), serie_hist_mod, serie_fut, var_mean, var_CV)
+                serie_CC_real[serie_CC_real<0] = 0
+                serie_CC_real.columns = serie_hist_user.columns
+
+                series_futuras.append(serie_CC_real)
+
+            # Concatena histórico y futuros para este escenario
+            serie_total = pd.concat([serie_hist_user.loc[:'2020']] + series_futuras, axis=0)
+
+            # Guarda la serie perturbada completa del modelo y escenario
+            output_dir = os.path.join(path_project, '06_ANALISIS_RESULTADOS', 'Series_Perturbadas_Modelos')
+            os.makedirs(output_dir, exist_ok=True)
+            output_file = os.path.join(output_dir, f'Serie_Perturbada_{model}_{scenario}.csv')
+            serie_total.to_csv(output_file)
+
+            print(f"   ✅ Serie perturbada guardada en: {output_file}")
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+import pandas as pd
+import numpy as np
+
+def process_and_perturb_historical_series(
+    file_aportaciones,
+    embalse,
+    path_project,
+    models,
+    climate_change,
+    periodos_fut = ['2021_2040','2041_2060','2061_2080','2081_2100']
+):
+    """
+    Lee la serie histórica de aportaciones, la procesa y ejecuta la perturbación climática
+    para los periodos futuros definidos, guardando los resultados.
+
+    Parameters
+    ----------
+    file_aportaciones : str
+        Ruta al archivo Excel de aportaciones históricas.
+
+    embalse : str
+        Nombre del embalse a filtrar en el DataFrame.
+
+    path_project : str
+        Ruta base del proyecto donde se guardarán los resultados.
+
+    climate_change : str
+        dataset u objeto de cambio climático.
+    
+    models : list
+        lista de modelos climáticos.
+
+    periodos_fut : list of str, optional
+        Lista de periodos futuros de simulación. Default: ['2021_2040','2041_2060','2061_2080','2081_2100'].
+
+    Returns
+    -------
+    None
+        Procesa y guarda las series perturbadas para todos los modelos y periodos definidos.
+    """
+
+    # ➡️ Lee la serie histórica desde Excel
+    serie_hist_ = pd.read_excel(
+        file_aportaciones,
+        index_col=0, parse_dates=True, skiprows=1
+    )
+
+    # Reemplaza valores 'No data' por NaN
+    serie_hist_.replace('No data', np.nan, inplace=True)
+
+    # Convierte todas las columnas a valores numéricos
+    serie_hist_num = serie_hist_.apply(pd.to_numeric, errors='coerce')
+
+    # Re-muestrea la serie a escala mensual sumando los valores diarios
+    serie_hist_monthly = serie_hist_num.resample('M').sum()
+
+    # Filtra y limpia la serie del embalse específico
+    if embalse not in serie_hist_monthly.columns:
+        print(f"⚠️ Embalse {embalse} no encontrado en el archivo de aportaciones.")
+        return
+
+    serie_hist = pd.DataFrame(serie_hist_monthly.loc[:, embalse])
+    serie_hist[serie_hist < 0] = 0
+
+    # ➡️ Ejecuta la función de perturbación y guardado
+    perturbate_and_save_all_models(path_project, serie_hist, climate_change, models, periodos_fut)
+
+    print(f"✅ Series perturbadas generadas y guardadas para {embalse}.")
+
+
+import os
+import pandas as pd
+import numpy as np
+
+def process_ensemble_for_embalse(
+    nombre_embalse,
+    file_aportaciones,
+    path_project,
+    models,
+    escenarios = ['ssp245', 'ssp585']
+):
+    """
+    Procesa series históricas y calcula estadísticos ensemble para un embalse y múltiples escenarios climáticos.
+
+    Parameters
+    ----------
+    nombre_embalse : str
+        Nombre del embalse a procesar.
+
+    file_aportaciones : str
+        Ruta al archivo Excel de aportaciones históricas.
+
+    path_project : str
+        Ruta base del proyecto del embalse.
+
+    models : list of str
+        Lista de modelos climáticos a procesar.
+
+    climate_change : object
+        Objeto de cambio climático (no usado directamente aquí pero se incluye para consistencia con otros flujos).
+
+    escenarios : list of str, optional
+        Escenarios climáticos a procesar. Default: ['ssp245', 'ssp585'].
+
+    Returns
+    -------
+    None
+        Calcula y guarda los archivos de estadísticos ensemble en la carpeta del embalse.
+    """
+
+    print(f"Procesando embalse: {nombre_embalse}")
+
+    # =========== 1. Leer serie histórica ===========
+    serie_hist_ = pd.read_excel(
+        file_aportaciones,
+        index_col=0, parse_dates=True, skiprows=1
+    )
+    serie_hist_.replace('No data', np.nan, inplace=True)
+    serie_hist_num = serie_hist_.apply(pd.to_numeric, errors='coerce')
+    serie_hist_monthly = serie_hist_num.resample('M').sum()
+
+    if nombre_embalse not in serie_hist_monthly.columns:
+        print(f"⚠️ Embalse {nombre_embalse} no encontrado en el archivo de aportaciones.")
+        return
+
+    serie_hist = pd.DataFrame(serie_hist_monthly.loc[:, nombre_embalse])
+    serie_hist[serie_hist < 0] = 0
+
+    # =========== 2. Itera escenarios ssp245 y ssp585 ===========
+    for esce in escenarios:
+        print(f"  Procesando escenario ensemble real: {esce}")
+
+        series_models = []
+
+        for model in models:
+            file_perturbed = os.path.join(
+                path_project, '06_ANALISIS_RESULTADOS', 'Series_Perturbadas_Modelos',
+                f'Serie_Perturbada_{model}_{esce}.csv'
+            )
+            if os.path.exists(file_perturbed):
+                df_model = pd.read_csv(file_perturbed, index_col=0, parse_dates=True)
+                df_model.columns = [model]
+                series_models.append(df_model)
+            else:
+                print(f"⚠️ Serie perturbada no encontrada para {model} {esce}")
+
+        # =========== 3. Concatena y calcula estadísticos ensemble ===========
+        if len(series_models) > 0:
+            df_concat = pd.concat(series_models, axis=1)
+
+            df_stats = pd.DataFrame(index=df_concat.index)
+            df_stats['ensemble_median'] = df_concat.median(axis=1)
+            df_stats['ensemble_p25'] = df_concat.quantile(0.25, axis=1)
+            df_stats['ensemble_p75'] = df_concat.quantile(0.75, axis=1)
+            df_stats['ensemble_p95'] = df_concat.quantile(0.95, axis=1)
+            df_stats['ensemble_p05'] = df_concat.quantile(0.05, axis=1)
+
+            # =========== 4. Guarda cada serie ensemble ===========
+            output_dir = os.path.join(path_project, '06_ANALISIS_RESULTADOS', 'Series_Perturbadas_Ensemble')
+            os.makedirs(output_dir, exist_ok=True)
+
+            for stat in df_stats.columns:
+                output_file = os.path.join(output_dir, f'Serie_CC_{stat}_{esce}_2021_2100.csv')
+                df_stats[[stat]].to_csv(output_file)
+                print(f"✅ Serie ({stat}) guardada en: {output_file}")
+
+        else:
+            print(f"⚠️ No se encontraron series perturbadas para {esce} en {nombre_embalse}")
+
+def plot_ensemble_subplots_embalse(
+    embalse, 
+    file_aportaciones,
+    path_base_project,
+    escenarios = ['ssp245', 'ssp585'],
+    quantiles = ['p05','p25', 'median', 'p75', 'p95'],
+    period_control = ['1995', '2014'],
+    save_fig = False,
+    fig_name = 'Ensemble_Subplots_LeyendaDebajo.png'
+):
+    """
+    Genera subplots de series ensemble (ssp245 y ssp585) para un embalse.
+    Incluye históricos, medianas, percentiles y medias de referencia.
+
+    Parameters
+    ----------
+    embalse : str
+        Nombre del embalse a procesar.
+
+    file_aportaciones : str
+        Ruta al archivo Excel de aportaciones históricas.
+
+    path_base_project : str
+        Ruta base donde se encuentra la carpeta del embalse.
+
+    escenarios : list of str, optional
+        Lista de escenarios a procesar. Default: ['ssp245', 'ssp585'].
+
+    quantiles : list of str, optional
+        Lista de cuantiles/estadísticos a leer. Default: ['p05','p25','median','p75','p95'].
+
+    period_control : list of str, optional
+        Periodo de control para calcular la media histórica. Default: ['1995', '2014'].
+
+    save_fig : bool, optional
+        Si True, guarda la figura en disco. Default: False.
+
+    fig_name : str, optional
+        Nombre del archivo de la figura si save_fig=True. Default: 'Ensemble_Subplots_LeyendaDebajo.png'.
+
+    Returns
+    -------
+    None
+        Muestra (y opcionalmente guarda) la figura procesada.
+    """
+
+    path_project = os.path.join(path_base_project)
+    output_dir = os.path.join(path_project, '06_ANALISIS_RESULTADOS', 'Series_Perturbadas_Ensemble')
+
+    # ➡️ Lee la serie histórica
+    serie_hist_ = pd.read_excel(
+        file_aportaciones,
+        index_col=0, parse_dates=True, skiprows=1
+    )
+    serie_hist_.replace('No data', np.nan, inplace=True)
+    serie_hist_num = serie_hist_.apply(pd.to_numeric, errors='coerce')
+    serie_hist_monthly = serie_hist_num.resample('M').sum()
+
+    # Filtra y limpia la serie del embalse actual
+    if embalse not in serie_hist_monthly.columns:
+        print(f"⚠️ Embalse {embalse} no encontrado en el archivo de aportaciones.")
+        return
+
+    serie_hist = pd.DataFrame(serie_hist_monthly.loc[:, embalse])
+    serie_hist[serie_hist < 0] = 0
+    serie_hist_annual = serie_hist.resample('A').sum()
+
+    # Calcula la media histórica en periodo de control
+    mean_hist = serie_hist_annual.loc[period_control[0]:period_control[1]].mean().values[0]
+
+    # ➡️ Inicializa figura
+    fig, axs = plt.subplots(1, len(escenarios), figsize=(7*len(escenarios), 5), sharex=True)
+    colors = {'ssp245': 'tab:blue', 'ssp585': 'tab:red'}
+
+    if len(escenarios) == 1:
+        axs = [axs]  # Si es solo un escenario, lo convierte a lista
+
+    handles_all = []
+    labels_all = []
+
+    # ➡️ Itera sobre escenarios y subplots
+    for ax, esce in zip(axs, escenarios):
+        series_sce = []
+        
+        # Lee archivos de cada cuantile
+        for quantile in quantiles:
+            file_path = os.path.join(output_dir, f'Serie_CC_ensemble_{quantile}_{esce}_2021_2100.csv')
+            if os.path.exists(file_path):
+                df = pd.read_csv(file_path, index_col=0, parse_dates=True)
+                df = df.loc['2021':]
+                df.columns = [quantile]
+                df_annual = df.resample('A').sum()
+                series_sce.append(df_annual)
+            else:
+                print(f"⚠️ Archivo no encontrado: {file_path}")
+        
+        if len(series_sce) > 0:
+            df_concat = pd.concat(series_sce, axis=1)
+            
+            # Calcula estadísticos
+            stats_df = pd.DataFrame(index=df_concat.index)
+            for quant in quantiles:
+                stats_df[quant] = df_concat[quant]
+
+            # Calcula media anual de la mediana
+            median_mean = stats_df['median'].mean()
+            
+            # Relleno P25-P75
+            ax.fill_between(stats_df.index.year, stats_df['p25'], stats_df['p75'],
+                            color=colors.get(esce,'tab:grey'), alpha=0.3, label=f'{esce.upper()} P25-P75')
+            
+            # Relleno P5-P95
+            ax.fill_between(stats_df.index.year, stats_df['p05'], stats_df['p95'],
+                            color=colors.get(esce,'tab:grey'), alpha=0.1, label=f'{esce.upper()} P5-P95')
+            
+            # Mediana
+            ax.plot(stats_df.index.year, stats_df['median'], color=colors.get(esce,'tab:grey'),
+                    linewidth=1.8, label=f'Mediana {esce.upper()}')
+            
+            # Línea media anual de la mediana
+            ax.axhline(median_mean, color=colors.get(esce,'tab:grey'), linestyle='dashed',
+                       linewidth=1.2, label=f'Media Mediana {esce.upper()}')
+            
+            # Serie histórica anual
+            ax.plot(serie_hist_annual.loc[:'2020'].index.year, serie_hist_annual.loc[:'2020'].values,
+                    color='grey', linewidth=1.2, linestyle='-', label='Histórico')
+            
+            # Media histórica
+            ax.axhline(mean_hist, color='green', linestyle='dashdot',
+                       linewidth=1.2, label='Media Histórica')
+            
+            # Estética
+            ax.set_title(f'{esce.upper()} - {embalse}', fontsize=13)
+            ax.set_ylabel('Hm³/año', fontsize=11)
+            ax.grid(True)
+            
+            # Recolecta handles y labels
+            handles, labels = ax.get_legend_handles_labels()
+            handles_all.extend(handles)
+            labels_all.extend(labels)
+
+    # ➡️ Elimina duplicados en la leyenda manteniendo orden
+    legend_items = dict(zip(labels_all, handles_all))
+
+    # ➡️ Leyenda global debajo de la figura
+    fig.legend(legend_items.values(), legend_items.keys(),
+               loc='lower center', ncol=4, fontsize=10, bbox_to_anchor=(0.5, -0.12))
+
+    # ➡️ Etiqueta eje X común
+    axs[-1].set_xlabel('Año', fontsize=12)
+
+    # ➡️ Ajusta layout
+    plt.tight_layout(rect=[0, 0.01, 1, 1])
+
+    # ➡️ Mostrar figura
+    plt.show()
+
+    # ➡️ Guardar figura si se indica
+    if save_fig:
+        output_fig = os.path.join(path_project, '06_ANALISIS_RESULTADOS', fig_name)
+        plt.savefig(output_fig, dpi=300, bbox_inches='tight')
+        print(f"✅ Figura guardada en: {output_fig}")

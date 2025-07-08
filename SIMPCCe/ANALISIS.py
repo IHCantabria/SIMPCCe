@@ -761,7 +761,6 @@ def fig_SPI(path_project,models,climate_change):
         labels.extend(axLabel)
 
 
-
     fig.subplots_adjust(bottom=0.1)
 
     fig.legend(lines, labels,           
@@ -769,9 +768,115 @@ def fig_SPI(path_project,models,climate_change):
     fig.tight_layout(pad=7)
 
     fig.savefig(path_project+'/07_INFORME/Figuras/SPI_CC'+'.png',bbox_inches='tight',dpi=350)
+
+def plot_SSFI_climate_change(serie_hist, serie_spi_45, serie_spi_85, title,ax,labels):
+    """Crea un diagrama de línea con la evolución temporal del SPI
+    
+    Entradas:
+    ---------
+    serie_spi: Series. Serie temporal de SPI
+    title:     string. Título del gráfico
+    
+    Salidas:
+    --------
+    Gráfico de línea"""
+    
+    # 1. Seleccionar los últimos N años de la serie histórica
+    N = 8  # Número de años a copiar
+    last_years = serie_hist.index[-1].year - N + 1
+    serie_ficticia = serie_hist[serie_hist.index.year >= last_years].copy()
+
+    # 2. Asegurar que el primer valor de la ficticia sea igual al último de la real
+    serie_ficticia.iloc[0] = serie_hist.iloc[-1]  # Forzar coincidencia en el punto de unión
+
+    # 3. Generar nuevas fechas (años futuros consecutivos)
+    new_dates = pd.date_range(
+        start=serie_hist.index[-2] + pd.offsets.DateOffset(years=1),  # Empieza un año después del último dato
+        periods=len(serie_ficticia),
+        freq='Y'  # Frecuencia anual
+    )
+    serie_ficticia.index = new_dates
+
+    # 4. Graficar la serie ficticia como línea discontinua
+    ax.plot(
+        serie_ficticia.index,
+        serie_ficticia,
+        linestyle='--',
+        color='gray',
+        alpha=0.7,
+        label='Proyección ficticia (últimos 5 años)'
+    )
+   
+
+    # Configuración
+    #fig, ax = plt.subplots(figsize=(12, 5))
+    ax.set(xlim=(serie_hist.index[0], serie_spi_45.index[-1]), ylim=(-3, 3))
+    time = pd.date_range(start=serie_hist.index[0], end=serie_spi_45.index[-1], freq='YE')
+    ax.set_title(title, fontsize=18)
+    
+   
+    
+    serie_spi_mean_rcp45 = serie_spi_45.median(axis=1)
+    serie_spi_q25_rcp45  = serie_spi_45.quantile(0.25,axis=1)
+    serie_spi_q95_rcp45  = serie_spi_45.quantile(0.95,axis=1)
+    
+    serie_spi_mean_rcp85 = serie_spi_85.median(axis=1)
+    serie_spi_q25_rcp85  = serie_spi_85.quantile(0.25,axis=1)
+    serie_spi_q95_rcp85  = serie_spi_85.quantile(0.95,axis=1)
     
     
-def plot_anual_change_aport(path_project,climate_change, models):
+    # Gráfico de línea del SPI
+    ax.plot(serie_hist, color='black', linewidth=1.2, label = 'Historical')
+    ax.plot(serie_spi_mean_rcp45.rolling(3,min_periods=1, center=True).mean(), color='blue', linewidth=1.2, label = labels[0] )
+    ax.plot(serie_spi_mean_rcp85.rolling(3,min_periods=1, center=True).mean(), color='red', linewidth=1.2, label  = labels[1])
+    
+    # Fondo con la leyenda de cada rango de SPI
+    ax.fill_between(time, -3, -2, color='black', alpha=0.4-0.1,
+                    label='sequía extrema')
+    ax.fill_between(time, -2, -1.5, color='black', alpha=0.3-0.1,
+                    label='sequía severa')
+    ax.fill_between(time, -1.5, -1, color='black', alpha=0.2-0.1,
+                    label='sequía moderada')
+    ax.fill_between(time, -1, 0, color='black', alpha=0.05,
+                    label='sequía ligera')
+    ax.fill_between(time, 0, 1, color='cyan', alpha=0.05,
+                    label='húmedo ligero')
+    ax.fill_between(time, 1, 1.5, color='cyan', alpha=0.2-0.1,
+                    label='húmedo moderado')
+    ax.fill_between(time, 1.5, 2, color='cyan', alpha=0.3-0.1,
+                    label='húmedo severo')
+    ax.fill_between(time, 2, 3, color='cyan', alpha=0.4-0.1,
+                    label='húmedo extremo')
+    
+    serie_spi_45.quantile(0.25,axis=1).rolling(3,min_periods=1, center=True).mean().plot(linestyle = '--', color='blue',  alpha=0.2, label='',ax=ax) 
+    serie_spi_45.quantile(0.75,axis=1).rolling(3,min_periods=1, center=True).mean().plot(linestyle = '--', color='blue',  alpha=0.2, label='',ax=ax)
+    
+    serie_spi_85.quantile(0.25,axis=1).rolling(3,min_periods=1, center=True).mean().plot(linestyle = '--', color='red',  alpha=0.2, label='',ax=ax) 
+    serie_spi_85.quantile(0.75,axis=1).rolling(3,min_periods=1, center=True).mean().plot(linestyle = '--', color='red',  alpha=0.2, label='',ax=ax)
+    
+    ax.fill_between(serie_spi_45.index, serie_spi_45.quantile(0.25,axis=1).rolling(3,min_periods=1, center=True).mean(),
+                    serie_spi_45.quantile(0.75,axis=1).rolling(3,min_periods=1, center=True).mean(), color='blue', alpha=0.2)
+    ax.fill_between(serie_spi_85.index, serie_spi_85.quantile(0.25,axis=1).rolling(3,min_periods=1, center=True).mean(),
+                    serie_spi_85.quantile(0.75,axis=1).rolling(3,min_periods=1, center=True).mean(), color='red', alpha=0.2)
+    
+    ax.xaxis.set_major_locator(matplotlib.dates.YearLocator(base=10))
+    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%Y"))
+    ax.set_ylim(-3,3)
+    
+    ax.vlines(f'{serie_spi_45.index.year[0]}-12-31', -3, 3, 'k', linestyle = '-')
+    ax.set_ylabel("SPI",fontsize=18)
+    ax.tick_params(axis="x", labelsize=14)
+    ax.tick_params(axis="y", labelsize=14)
+
+def fig_SSFI(path_project, models, climate_change):
+    import os
+    """
+    Genera la figura de SSFI usando series de aportaciones ya calculadas en CSV.
+    """
+
+    # =====================
+    # Configuración
+    # =====================
     if climate_change=='CORDEX':
         esce        = ['rcp45','rcp85']
         label_esce  = ['RCP 4.5','RCP 8.5']
@@ -783,56 +888,149 @@ def plot_anual_change_aport(path_project,climate_change, models):
         hist_period = ['1995','2014']
         fut_period  = ['2015','2100']
 
-    Aport_hist = pd.read_csv(path_project+'/03_APORTACIONES/Aportaciones_Sim.csv',index_col=0, parse_dates=True)
-    Aport_hist = Aport_hist.loc[hist_period[0]:hist_period[1]]
-    Aport_fut_45 = pd.DataFrame(index=pd.date_range(start=f'{fut_period[0]}-01-01',end='2100-12-31',freq='M'),columns = models)
-    Aport_fut_45.index = Aport_fut_45.index.date - pd.offsets.MonthBegin(1)
-    Aport_fut_85 = pd.DataFrame(index=pd.date_range(start=f'{fut_period[0]}-01-01',end='2100-12-31',freq='M'),columns = models)
-    Aport_fut_85.index = Aport_fut_85.index.date - pd.offsets.MonthBegin(1)
+    # Inicializa DataFrames anuales
+    dataframe_hist_year = pd.DataFrame()
+    dataframe_245_year = pd.DataFrame()
+    dataframe_585_year = pd.DataFrame()
 
+    # =====================
+    # Lectura modelo por modelo
+    # =====================
+    df_hist = pd.read_csv(path_project+'/03_APORTACIONES/Aportaciones_Sim.csv',index_col=0, parse_dates=True)
+    df_hist = df_hist.loc[hist_period[0]:hist_period[1]]
+    df_hist[df_hist <= 0] = 0.000001
+    df_hist_y = df_hist.resample('A').sum()
+    serie_ssfi_hist = SPI(df_hist_y.iloc[:,0].astype(float), verbose=False)
+    for model in tqdm.tqdm(models):
+        modelo_split = model.split("_")
+       
+        # === SSP2 4.5 ===
+        file_245 = f"{path_project}/05_CAMBIO_CLIMATICO/02_APORTACIONES/{create_name(climate_change, 'Aportaciones', esce[0], modelo_split)}.csv"
+        df_245 = pd.read_csv(file_245, index_col=0, parse_dates=True)
+        df_245 = df_245.loc[fut_period[0]:fut_period[1]]
+        df_245[df_245 <= 0] = 0.000001
+        df_245_y = df_245.resample('A').sum()
+        dataframe_245_year[model] = df_245_y.iloc[:,0]
+
+        # === SSP5 8.5 ===
+        file_585 = f"{path_project}/05_CAMBIO_CLIMATICO/02_APORTACIONES/{create_name(climate_change, 'Aportaciones', esce[1], modelo_split)}.csv"
+        df_585 = pd.read_csv(file_585, index_col=0, parse_dates=True)
+        df_585 = df_585.loc[fut_period[0]:fut_period[1]]
+        df_585[df_585 <= 0] = 0.000001
+        df_585_y = df_585.resample('A').sum()
+        dataframe_585_year[model] = df_585_y.iloc[:,0]
+
+    # =====================
+    # Calcula SSFI
+    # =====================
+    serie_ssfi_245 = pd.DataFrame(index=dataframe_245_year.index, columns=models)
+    serie_ssfi_585 = pd.DataFrame(index=dataframe_585_year.index, columns=models)
+
+    for model in models:
+        fut_245_values = dataframe_245_year[model].astype(float)
+        fut_585_values = dataframe_585_year[model].astype(float)
+
+        serie_ssfi_245[model] = SPI_CC(df_hist_y.loc['1995':'2014'].values, fut_245_values, verbose=False)
+        serie_ssfi_585[model] = SPI_CC(df_hist_y.loc['1995':'2014'].values, fut_585_values, verbose=False)
+
+    # =====================
+    # Gráfico
+    # =====================
+    fig, ax = plt.subplots(figsize=(12,7))
+
+    # Función de ploteo específica SSFI
+    plot_SSFI_climate_change(serie_ssfi_hist, serie_ssfi_245, serie_ssfi_585, 'Índice de caudal estandarizado (SSFI)', ax, label_esce)
+
+    lines = []
+    labels = []  
+    for i,axx in enumerate(fig.axes[:1]):
+        axLine, axLabel = axx.get_legend_handles_labels()
+        lines.extend(axLine)
+        labels.extend(axLabel)
+
+
+
+    fig.subplots_adjust(bottom=0.1)
+
+    fig.legend(lines, labels,           
+               loc = 8,ncol=4,fontsize=12)
+    fig.tight_layout(pad=7)
+
+    fig.savefig(path_project+'/07_INFORME/Figuras/SSFI_CC'+'.png',bbox_inches='tight',dpi=350)
+    
+    
+def plot_anual_change_aport(path_project, climate_change, models):
+    models = models.copy()
+    # Define escenarios y periodos según CMIP6 o CORDEX
+    if climate_change == 'CORDEX':
+        esce = ['rcp45', 'rcp85']
+        label_esce = ['RCP 4.5', 'RCP 8.5']
+        hist_period = ['1976', '2005']
+        fut_period = ['2006', '2100']
+    elif climate_change == 'CMIP6':
+        esce = ['ssp245', 'ssp585']
+        label_esce = ['SSP2 4.5', 'SSP5 8.5']
+        hist_period = ['1995', '2014']
+        fut_period = ['2015', '2100']
+
+    # Lee aportaciones históricas
+    Aport_hist = pd.read_csv(f"{path_project}/03_APORTACIONES/Aportaciones_Sim.csv", index_col=0, parse_dates=True)
+    Aport_hist = Aport_hist.loc[hist_period[0]:hist_period[1]]
+
+    # Crea DataFrames vacíos para futuro
+    date_range_fut = pd.date_range(start=f'{fut_period[0]}-01-01', end='2100-12-31', freq='M')
+    Aport_fut_45 = pd.DataFrame(index=date_range_fut - pd.offsets.MonthBegin(1), columns=models)
+    Aport_fut_85 = pd.DataFrame(index=date_range_fut - pd.offsets.MonthBegin(1), columns=models)
+
+    # Rellena con cada modelo
     for nmodel in models:
         modelo_split = nmodel.split("_")
-        apor_45 = pd.read_csv(f"{path_project}/05_CAMBIO_CLIMATICO/02_APORTACIONES/{create_name(climate_change,'Aportaciones',esce[0],modelo_split)}.csv",index_col=0, parse_dates=True)
-        apor_85 = pd.read_csv(f"{path_project}/05_CAMBIO_CLIMATICO/02_APORTACIONES/{create_name(climate_change,'Aportaciones',esce[1],modelo_split)}.csv",index_col=0, parse_dates=True)
+        apor_45 = pd.read_csv(f"{path_project}/05_CAMBIO_CLIMATICO/02_APORTACIONES/{create_name(climate_change, 'Aportaciones', esce[0], modelo_split)}.csv", index_col=0, parse_dates=True)
+        apor_85 = pd.read_csv(f"{path_project}/05_CAMBIO_CLIMATICO/02_APORTACIONES/{create_name(climate_change, 'Aportaciones', esce[1], modelo_split)}.csv", index_col=0, parse_dates=True)
 
-        Aport_fut_45.loc[apor_45.index,nmodel] = apor_45.values.flatten()
-        Aport_fut_85.loc[apor_85.index,nmodel] = apor_85.values.flatten()
-        
-    change_45 = (Aport_fut_45.dropna().resample('Y').sum()/Aport_hist.loc[hist_period[0]:hist_period[1]].resample('Y').sum().mean()[0]-1)*100
-    change_45 = change_45.loc[:,change_45.mean().sort_values().index]
-    change_45['MEDIA DE LOS MODELOS'] = change_45.mean(axis=1)
-    
-    cmap = plt.cm.bwr_r  # define the colormap
-    # extract all colors from the .jet map
-    cmaplist = [cmap(i) for i in range(cmap.N)]
-    # force the first color entry to be grey
-    cmaplist[0] = (.5, .5, .5, 1.0)
+        Aport_fut_45.loc[apor_45.index, nmodel] = apor_45.values.flatten()
+        Aport_fut_85.loc[apor_85.index, nmodel] = apor_85.values.flatten()
 
-    # create the new map
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-        'Custom cmap', cmaplist, cmap.N)
+    # Calcula el cambio porcentual anual para cada escenario
+    def compute_change(aport_fut, aport_hist, escenario_label, esce_name):
+        # Cambio anual en porcentaje respecto a histórico medio
+        change = (aport_fut.dropna().resample('Y').sum() / aport_hist.resample('Y').sum().mean()[0] - 1) * 100
+        change = change.loc[:, change.mean().sort_values().index]
 
-    # define the bins and normalize
-    bounds = np.arange(-100, 120, 20)
-    norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
+        # Añade columna de media
+        change['MEDIANA DE LOS MODELOS'] = change.median(axis=1)
+
+        # Prepara colores y bins
+        cmap = plt.cm.bwr_r
+        cmaplist = [cmap(i) for i in range(cmap.N)]
+        cmaplist[0] = (.5, .5, .5, 1.0)
+        cmap = matplotlib.colors.LinearSegmentedColormap.from_list('Custom cmap', cmaplist, cmap.N)
+
+        bounds = np.arange(-100, 120, 20)
+        norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
+        cbar_kws = {'label': 'Porcentaje de cambio (%)'}
+
+        # Ajusta tamaño de la figura dinámicamente
+        n_models = len(change.columns)
+        fig_height = np.max([4.0, n_models * 0.2])
+        fig, ax = plt.subplots(figsize=(20, fig_height))
+
+        # Plot heatmap
+        sns.heatmap(change.T.astype(float), annot=False, ax=ax, cmap='bwr_r', norm=norm,
+                    cbar_kws=cbar_kws, vmax=100, vmin=-100, xticklabels=change.index.year)
+        ax.set_yticks(np.arange(len(change.columns)) + 0.5)
+        ax.set_yticklabels(change.columns, rotation=0, fontsize=8)  # Ajusta fontsize según preferencia
+
+        ax.set_title(f'Cambio anual en aportaciones {escenario_label}', fontsize=12, fontweight="bold")
+
+        # Guarda figura y cierra
+        plt.savefig(f"{path_project}/07_INFORME/Figuras/Cambio_Anual_Modelos_{esce_name.upper()}.png", bbox_inches='tight', dpi=350)
+        # plt.close()
+
+    # Genera figuras para ambos escenarios
+    compute_change(Aport_fut_45, Aport_hist, label_esce[0], esce[0])
+    compute_change(Aport_fut_85, Aport_hist, label_esce[1], esce[1])
     
-    fig, ax = plt.subplots(figsize=(20,4))
-    cbar_kws={'label': 'Porcentaje de cambio (%)'}
-    sns.heatmap(change_45.T.astype(float), annot=False,ax=ax,cmap='bwr_r',norm=norm,cbar_kws=cbar_kws,vmax=100,vmin=-100,xticklabels=change_45.index.year)
-    ax.set_title(f'Cambio anual en aportaciones {label_esce[0]}',fontsize=12,fontweight="bold")
-    plt.savefig(f"{path_project}/07_INFORME/Figuras/Cambio_Anual_Modelos_{esce[0].upper()}.png",bbox_inches='tight',dpi=350)
-    
-    change_85 = (Aport_fut_85.dropna().resample('Y').sum()/Aport_hist.loc[hist_period[0]:hist_period[1]].resample('Y').sum().mean()[0]-1)*100
-    change_85 = change_85.loc[:,change_85.mean().sort_values().index]
-    change_85['MEDIA DE LOS MODELOS'] = change_85.mean(axis=1)
-    
-    fig, ax = plt.subplots(figsize=(20,4))
-    cbar_kws={'label': 'Porcentaje de cambio (%)'}
-    sns.heatmap(change_85.T.astype(float), annot=False,ax=ax,cmap='bwr_r',norm=norm,cbar_kws=cbar_kws,vmax=100,vmin=-100,xticklabels=change_85.index.year)
-    ax.set_title(f'Cambio anual en aportaciones {label_esce[1]}',fontsize=12,fontweight="bold")
-    plt.savefig(f"{path_project}/07_INFORME/Figuras/Cambio_Anual_Modelos_{esce[1].upper()}.png",bbox_inches='tight',dpi=350)
-    
-      
 def plot_cambios_aport(path_project,climate_change, models):  
     #sns.set_style("white")
     #sns.set_context("poster")
@@ -1150,11 +1348,8 @@ def analysis_SSFI(path_project,climate_change,models):
     serie_spi_hist = pd.DataFrame(index=pd.date_range(start=f'{hist_period[0]}-01-01',end=f'{hist_period[1]}-12-31',freq='M'), columns=['SSFI'])
     serie_spi_hist.index = serie_spi_hist.index.date - pd.offsets.MonthBegin(1)
    
-    
     serie_spi_hist_year = pd.DataFrame(index=pd.date_range(start=f'{hist_period[0]}-01-01',end=f'{hist_period[1]}-12-31',freq='Y'), columns=['SSFI'])
     serie_spi_hist_year.index = serie_spi_hist_year.index.date - pd.offsets.MonthBegin(1)
-    
-    
     
     SIM_Hist = pd.read_csv(path_project+'/03_APORTACIONES/Aportaciones_Sim.csv',index_col=0, parse_dates=True)
     SIM_Hist = SIM_Hist.loc[hist_period[0]:hist_period[1]]
@@ -1202,27 +1397,54 @@ def analysis_SSFI(path_project,climate_change,models):
         serie_spi_85_year.to_csv(f'{path_project}/06_ANALISIS_RESULTADOS/INDICE_SSFI_Anual_{esce[1]}_{period}.csv')
         
     
-def n_meses_aport(serie,value):
-    no_aport=list()
-    serie_aport=pd.DataFrame(serie.copy())
-    serie_aport[serie<value]=1
-    serie_aport[serie>=value]=0
-    ncon=pd.DataFrame(serie_aport.copy()*0)
-    for i in (range(len(serie_aport))):
-        if serie_aport.iloc[i].values == 1:
-             ncon.iloc[i] = ncon.iloc[i-1] + 1
-        else:
-            ncon.iloc[i] = 0
-            
-    serie_aport_0=serie.copy()
-    serie_aport_0[serie_aport_0>0.00000000001]=np.nan
-    serie_aport_0[serie_aport_0<=0.00000000001]=1
+def n_meses_aport(serie, value):
+    # Inicializa lista vacía (no se utiliza posteriormente, podría eliminarse)
+    no_aport = list()
     
-    serie_aport[serie_aport==0.00000000001] = np.nan
+    # Crea un DataFrame copia de la serie de entrada
+    serie_aport = pd.DataFrame(serie.copy())
+    
+    # Marca con 1 los valores menores al umbral (sin aporte)
+    serie_aport[serie < value] = 1
+    
+    # Marca con 0 los valores mayores o iguales al umbral (hay aporte)
+    serie_aport[serie >= value] = 0
+    
+    # Crea un DataFrame de ceros con la misma estructura para contar rachas consecutivas
+    ncon = pd.DataFrame(serie_aport.copy() * 0)
+    
+    # Recorre la serie para contar rachas consecutivas de meses sin aporte
+    for i in range(len(serie_aport)):
+        if serie_aport.iloc[i].values == 1:
+            # Si en el mes actual no hay aporte, suma 1 al contador anterior
+            ncon.iloc[i] = ncon.iloc[i-1] + 1
+        else:
+            # Si hay aporte, reinicia el contador a 0
+            ncon.iloc[i] = 0
+    
+    # Crea una copia de la serie original para contar meses con aporte casi nulo (<= 1e-11)
+    serie_aport_0 = serie.copy()
+    
+    # Marca con NaN los valores mayores a 1e-11 (hay aporte)
+    serie_aport_0[serie_aport_0 > 0.00000000001] = np.nan
+    
+    # Marca con 1 los valores menores o iguales a 1e-11 (sin aporte prácticamente)
+    serie_aport_0[serie_aport_0 <= 0.00000000001] = 1
+    
+    # Estas líneas parecen redundantes: intentan reemplazar valores exactos de 1e-11 por NaN
+    # pero en 'serie_aport' nunca se asignó ese valor exacto en el código actual.
+    serie_aport[serie_aport == 0.00000000001] = np.nan
+    
+    # Elimina filas con NaN en 'serie_aport' (filtrado final)
     serie_aport = serie_aport.dropna()
     
+    # Obtiene los meses únicos presentes en la serie (no se usa en la función)
     months = np.unique(serie_aport.index.month)
-
+    
+    # Devuelve:
+    # 1. Número de meses con aportes menores al umbral
+    # 2. Racha máxima de meses consecutivos sin aporte
+    # 3. Número de meses con aporte casi nulo (≤ 1e-11)
     return serie_aport.sum().values[0], ncon.max().values[0], serie_aport_0.sum()
 
 
@@ -1246,8 +1468,8 @@ def calculate_indicadores(path_project,name_embalse,climate_change,models):
 
     
     mux_cc = pd.MultiIndex.from_product([periodos_N,label_esce,['Nº de meses con aportaciones < Q25',
-                                                                                                'Nº de meses consecutivos con aportaciones < Q25',
-                                                                                                'Nº meses con aportaciones == 0','SSFI'],['Mean','Max','Min']])
+                                                                                                'Nº máximo de meses consecutivos con aportaciones < Q25',
+                                                                                                'Nº de meses con aportaciones == 0','SSFI'],['Mean','Max','Min']])
 
     Analisis_mensual_CC = pd.DataFrame(index =[name_embalse],columns=mux_cc,dtype=float)
 
@@ -1294,13 +1516,13 @@ def calculate_indicadores(path_project,name_embalse,climate_change,models):
         Analisis_mensual_CC[period][label_esce[0]]['Nº de meses con aportaciones < Q25']['Max'].loc[name_embalse]  = Analisis_models_45.max()[0]
         Analisis_mensual_CC[period][label_esce[0]]['Nº de meses con aportaciones < Q25']['Min'].loc[name_embalse]  = Analisis_models_45.min()[0]
 
-        Analisis_mensual_CC[period][label_esce[0]]['Nº de meses consecutivos con aportaciones < Q25']['Mean'].loc[name_embalse] = int(Analisis_models_45.mean()[1])
-        Analisis_mensual_CC[period][label_esce[0]]['Nº de meses consecutivos con aportaciones < Q25']['Max'].loc[name_embalse]  = Analisis_models_45.max()[1]
-        Analisis_mensual_CC[period][label_esce[0]]['Nº de meses consecutivos con aportaciones < Q25']['Min'].loc[name_embalse]  = Analisis_models_45.min()[1]
+        Analisis_mensual_CC[period][label_esce[0]]['Nº máximo de meses consecutivos con aportaciones < Q25']['Mean'].loc[name_embalse] = int(Analisis_models_45.mean()[1])
+        Analisis_mensual_CC[period][label_esce[0]]['Nº máximo de meses consecutivos con aportaciones < Q25']['Max'].loc[name_embalse]  = Analisis_models_45.max()[1]
+        Analisis_mensual_CC[period][label_esce[0]]['Nº máximo de meses consecutivos con aportaciones < Q25']['Min'].loc[name_embalse]  = Analisis_models_45.min()[1]
 
-        Analisis_mensual_CC[period][label_esce[0]]['Nº meses con aportaciones == 0']['Mean'].loc[name_embalse] = int(Analisis_models_45.mean()[2])
-        Analisis_mensual_CC[period][label_esce[0]]['Nº meses con aportaciones == 0']['Max'].loc[name_embalse]  = Analisis_models_45.max()[2]
-        Analisis_mensual_CC[period][label_esce[0]]['Nº meses con aportaciones == 0']['Min'].loc[name_embalse]  = Analisis_models_45.min()[2]
+        Analisis_mensual_CC[period][label_esce[0]]['Nº de meses con aportaciones == 0']['Mean'].loc[name_embalse] = int(Analisis_models_45.mean()[2])
+        Analisis_mensual_CC[period][label_esce[0]]['Nº de meses con aportaciones == 0']['Max'].loc[name_embalse]  = Analisis_models_45.max()[2]
+        Analisis_mensual_CC[period][label_esce[0]]['Nº de meses con aportaciones == 0']['Min'].loc[name_embalse]  = Analisis_models_45.min()[2]
 
         Analisis_mensual_CC[period][label_esce[0]]['SSFI']['Mean'].loc[name_embalse] = Analisis_models_45.mean()[3]
         Analisis_mensual_CC[period][label_esce[0]]['SSFI']['Max'].loc[name_embalse]  = Analisis_models_45.max()[3]
@@ -1311,13 +1533,13 @@ def calculate_indicadores(path_project,name_embalse,climate_change,models):
         Analisis_mensual_CC[period][label_esce[1]]['Nº de meses con aportaciones < Q25']['Max'].loc[name_embalse]  = Analisis_models_85.max()[0]
         Analisis_mensual_CC[period][label_esce[1]]['Nº de meses con aportaciones < Q25']['Min'].loc[name_embalse]  = Analisis_models_85.min()[0]
 
-        Analisis_mensual_CC[period][label_esce[1]]['Nº de meses consecutivos con aportaciones < Q25']['Mean'].loc[name_embalse] = int(Analisis_models_85.mean()[1])
-        Analisis_mensual_CC[period][label_esce[1]]['Nº de meses consecutivos con aportaciones < Q25']['Max'].loc[name_embalse]  = Analisis_models_85.max()[1]
-        Analisis_mensual_CC[period][label_esce[1]]['Nº de meses consecutivos con aportaciones < Q25']['Min'].loc[name_embalse]  = Analisis_models_85.min()[1]
+        Analisis_mensual_CC[period][label_esce[1]]['Nº máximo de meses consecutivos con aportaciones < Q25']['Mean'].loc[name_embalse] = int(Analisis_models_85.mean()[1])
+        Analisis_mensual_CC[period][label_esce[1]]['Nº máximo de meses consecutivos con aportaciones < Q25']['Max'].loc[name_embalse]  = Analisis_models_85.max()[1]
+        Analisis_mensual_CC[period][label_esce[1]]['Nº máximo de meses consecutivos con aportaciones < Q25']['Min'].loc[name_embalse]  = Analisis_models_85.min()[1]
 
-        Analisis_mensual_CC[period][label_esce[1]]['Nº meses con aportaciones == 0']['Mean'].loc[name_embalse] = int(Analisis_models_85.mean()[2])
-        Analisis_mensual_CC[period][label_esce[1]]['Nº meses con aportaciones == 0']['Max'].loc[name_embalse]  = Analisis_models_85.max()[2]
-        Analisis_mensual_CC[period][label_esce[1]]['Nº meses con aportaciones == 0']['Min'].loc[name_embalse]  = Analisis_models_85.min()[2]
+        Analisis_mensual_CC[period][label_esce[1]]['Nº de meses con aportaciones == 0']['Mean'].loc[name_embalse] = int(Analisis_models_85.mean()[2])
+        Analisis_mensual_CC[period][label_esce[1]]['Nº de meses con aportaciones == 0']['Max'].loc[name_embalse]  = Analisis_models_85.max()[2]
+        Analisis_mensual_CC[period][label_esce[1]]['Nº de meses con aportaciones == 0']['Min'].loc[name_embalse]  = Analisis_models_85.min()[2]
 
         Analisis_mensual_CC[period][label_esce[1]]['SSFI']['Mean'].loc[name_embalse] = Analisis_models_85.mean()[3]
         Analisis_mensual_CC[period][label_esce[1]]['SSFI']['Max'].loc[name_embalse]  = Analisis_models_85.max()[3]
@@ -1414,6 +1636,7 @@ class Analisis:
         serie_climate_change(self.path_project, 'tasmax', self.models, self.climate_change)
         serie_climate_change(self.path_project, 'tasmin', self.models, self.climate_change)
         fig_SPI(self.path_project, self.models, self.climate_change)
+        fig_SSFI(self.path_project, self.models, self.climate_change)
         plot_anual_change_aport(self.path_project, self.climate_change, self.models)
         plot_cambios_aport(self.path_project, self.climate_change, self.models)
         plot_analisis_mensual_aport(self.path_project, self.climate_change, self.models)
