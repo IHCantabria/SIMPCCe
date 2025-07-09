@@ -57,8 +57,8 @@ def convertir_a_datetime64(ds):
         valid_mask = ~pd.isna(converted_time)
         n_invalid = (~valid_mask).sum()
 
-        if n_invalid > 0:
-            print(f"⚠️ Eliminadas {n_invalid} fechas inválidas (NaT).")
+        # if n_invalid > 0:
+        #     print(f"⚠️ Eliminadas {n_invalid} fechas inválidas (NaT).")
 
         # Aplicar la máscara para filtrar
         ds = ds.isel(time=valid_mask)
@@ -205,7 +205,7 @@ def extract_climate_change_CMIP6(path_project,path_data):
             for var in (['pr', 'tasmax', 'tasmin']):
                 for m in modelos_split:
                     # nc_files = glob.glob(f"{path_data}/CMIP6/{var}/{scenario}/{var}_day_{m[0]}_{sc}_{m[1]}_{m[2]}*")
-                    nc_files = glob.glob(f"{path_data}/{var}/{scenario}/{var}_day_{m[0]}_{sc}_{m[1]}_{m[2]}*")
+                    nc_files = glob.glob(f"{path_data}/CMIP6/{var}/{scenario}/{var}_day_{m[0]}_{sc}_{m[1]}_{m[2]}*")
                     if os.path.exists(f"{path_project}/05_CAMBIO_CLIMATICO/01_CLIMA/CMIP6/{var}/{var}_month_{m[0]}_{sc}_{m[1]}_{m[2]}.csv"):
                         df = pd.read_csv(f"{path_project}/05_CAMBIO_CLIMATICO/01_CLIMA/CMIP6/{var}/{var}_month_{m[0]}_{sc}_{m[1]}_{m[2]}.csv", index_col=0, parse_dates=True)
                     else:
@@ -226,7 +226,7 @@ def extract_climate_change_CMIP6(path_project,path_data):
                                 fecha_fin = '2100-12-31'
                             ds_day = ds_day.sel(time=slice(fecha_inicio, fecha_fin))
                             if ds_day['time'].size == 0:
-                                print(f"⚠️ Archivo sin datos entre las fechas establecidas: {nc_file}")
+                                # print(f"⚠️ Archivo sin datos entre las fechas establecidas: {nc_file}")
                                 continue  # Salta al siguiente archivo
                             if var=='pr':
                                 ds = ds_day[var].resample(time='M').reduce(np.nansum)*86400

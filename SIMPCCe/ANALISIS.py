@@ -1559,8 +1559,6 @@ class Analisis:
         Ruta al directorio principal del proyecto.
     name_project : str
         Nombre del proyecto.
-    path_data : str
-        Ruta al directorio de datos de entrada (clima corregido, etc.).
     nombre_embalse : str
         Nombre del embalse analizado.
     climate_change : str, opcional
@@ -1568,12 +1566,11 @@ class Analisis:
     logging : bool, opcional
         Si True, se mostrarán mensajes de seguimiento. Por defecto True.
     """
-    def __init__(self, path_project, name_project, path_data, nombre_embalse,
+    def __init__(self, path_project, name_project, nombre_embalse,
                  climate_change='CMIP6', logging=True):
 
         self.path_project = path_project
         self.name_project = name_project
-        self.path_data = path_data
         self.nombre_embalse = nombre_embalse
         self.climate_change = climate_change.upper()
         self.logging = logging
