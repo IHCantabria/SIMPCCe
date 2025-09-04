@@ -60,12 +60,16 @@ class SIMPA(object):
     def __init__ (self,path_simpa):
         self.path_simpa   = path_simpa
 
-    def extract_flow_simpa(self,coord,path_output):
+    def extract_flow_simpa(self, NombreEmbalse, Coordenadas, path_output):
         """
         Con esta función se pueden extraer los datos de aportaciones de SIMPA en un punto en concreto.
         Datos de Entrada:
         -----------------
-        coord:       dataframe. Tabla con las coordenadas de los puntos en los que se desea obtener las aportaciones
+        NombreEmbalse: str. Nombre del embalse en la forma que aparece en el índice
+                       de Coordenadas
+        Coordenadas: Pandas DataFrame. DataFrame con las coordenadas del punto de
+                     vertido del embalse y de los puntos de vertido de las cuencas
+                     que hay que sustraer.
         path_output: string. Directorio donde se quieren guardar las series temporales extraideas 
 
         Resultados:
@@ -76,25 +80,12 @@ class SIMPA(object):
         time=pd.date_range(start='1940-10-01',end='2018-09-30',freq='M')
         reference_time = pd.Timestamp("1940-10-01")
 
-        Flow = pd.DataFrame(index = time, columns=coord.index)
+        Flow = pd.DataFrame(index = time, columns=Coordenadas.index)
         ds = xr.open_dataset(self.path_simpa+'/Aportaciones/Aportaciones_SIMPA_CEDEX.nc')
-        for s, ss in enumerate(coord.index):
-            Flow.loc[:,ss] = ds.aportacion.sel(y= coord.iloc[s].loc['COORDY'], x=coord.iloc[s].loc['COORDX'], method='nearest')
-        #for i,ii in enumerate(tqdm.tqdm(time)):
-            #flow[:,:,i]=np.flipud(np.loadtxt(path+'acaes'+str(ii.year)+'_'+str(ii.month)+'.asc',skiprows=6))
-            # ds = gdal.Open(self.path_simpa+'/Aportaciones/acaesh'+str(ii.year)+'_'+str(ii.month)+'.asc', gdal.GA_ReadOnly)
-            # gt   = ds.GetGeoTransform()
+        for s, ss in enumerate(Coordenadas.index):
+            Flow.loc[:,ss] = ds.aportacion.sel(y=Coordenadas.iloc[s].loc['COORDY'], x=Coordenadas.iloc[s].loc['COORDX'], method='nearest')
 
-            # for s, ss in enumerate(coord.index):
-            #     value_month = []
-            #     mx = coord.iloc[s].loc['COORDX']
-            #     my = coord.iloc[s].loc['COORDY']
 
-            #     px = floor((mx - gt[0]) / gt[1]) #x pixel
-            #     py = floor((my - gt[3]) / gt[5]) #y pixel
-
-            #     intval=ds.ReadAsArray(px,py,1,1)
-            #     Flow.loc[ii,ss] = intval[0][0]
-            # del ds
+        Flow = pd.DataFrame({NombreEmbalse: Flow[NombreEmbalse] - Flow.drop(columns=NombreEmbalse).sum(axis=1)})
 
         Flow.to_csv(path_output+'/Aportaciones.csv')

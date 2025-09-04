@@ -23,8 +23,11 @@ def generate_project(path_project,name_project):
         Conjunto de carpetas donde se irán guardando los ficheros resultantes de los procesos metodológicos.
 
         """
-    
-        shutil.copyfile('./data/File_Project.yml',path_project+'/'+name_project+'.yml') #sys._MEIPASS
+        os.makedirs(path_project, exist_ok=True)
+        src = "./data/File_Project.yml"
+        dst = os.path.join(path_project, name_project + ".yml")
+        shutil.copyfile(src, dst)
+        # shutil.copyfile('./data/File_Project.yml',path_project+'/'+name_project+'.yml') #sys._MEIPASS
         os.makedirs(path_project+'/01_CLIMA/',exist_ok=True)
         #os.makedirs(path_project+'/01_CLIMA/Precipitacion/',exist_ok=True)
         #os.makedirs(path_project+'/01_CLIMA/Temperatura/',exist_ok=True)

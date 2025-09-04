@@ -78,13 +78,18 @@ class AEMET(object):
         self.path_aemet   = path_aemet
         self.path_project = path_project
         
-    def extract_climate_aemet(self,X,Y):
+    def extract_climate_aemet(self, NombreEmbalse, Coordenadas):
         """
         Con esta función se pueden extraer los datos climáticos de SPAIN 02 (AEMET) en la cuenca aportante a un punto dado.
         Datos de Entrada:
         -----------------
+        NombreEmbalse: str. Nombre del embalse de interés utilizado como índice en Coordenadas
+        Coordenadas: Pandas DataFrame. DataFrame que contiene las coordenadas del
+                     embalse de interés y de todas las cuencas que hay que restar.
+        Las coordenadas de cada punto son X e Y
         X          : float. Coordenada X en UTM ETRS89 Z30 del punto de desagüe
         Y          : float. Coordenada Y en UTM ETRS89 Z30 del punto de desagüe
+
         Resultados:
         -----------------
         Precipitation:       csv. Fichero csv con los resultados extraidos de precipitación.
@@ -96,6 +101,8 @@ class AEMET(object):
         
         inProj = Proj(init='epsg:25830')
         outProj = Proj(init='epsg:4326')
+
+        X, Y = Coordenadas.loc[NombreEmbalse]
         
         lon_C = transform(inProj,outProj,X,Y)[0]
         lat_C = transform(inProj,outProj,X,Y)[1]
@@ -140,14 +147,35 @@ class AEMET(object):
         coordenadas_river=np.fliplr(coordenadas[pos_r[0]])
         cellsize=np.abs(np.unique(np.sort(coordenadas.T[0]))[0]-np.unique(np.sort(coordenadas.T[0]))[1])
         coordenadas_river=coordenadas_river+[cellsize/2,-cellsize/2]
+
+        # Aquí se calcula la cuenca vertiente total al punto de vertido del embalse.
+        # Si esa cuenca contiene en su interior otros embalses, habría que restar
+        # las áreas vertientes de estos
         dist=np.sqrt((x_2-coordenadas_river.T[0])**2+(y_2-coordenadas_river.T[1])**2)
+        catch = grid.catchment(x=(coordenadas_river[np.argmin(dist)][0]-cellsize/2),
+                               y=(coordenadas_river[np.argmin(dist)][1]+cellsize/2),
+                               fdir=fdir, dirmap=dirmap, out_name='catch',
+                               recursionlimit=150000, xytype='label',
+                               nodata=np.int32(-1))
 
-        catch = grid.catchment(x=(coordenadas_river[np.argmin(dist)][0]-cellsize/2), y=(coordenadas_river[np.argmin(dist)][1]+cellsize/2),fdir=fdir, dirmap=dirmap, out_name='catch',
-               recursionlimit=150000, xytype='label', nodata=np.int32(-1))
-        
+        resta = np.zeros_like(np.array(catch)).astype(np.int32)
+        for sub in Coordenadas.drop(NombreEmbalse).index:
+            x_2, y_2 = Coordenadas.loc[sub]
+            dist=np.sqrt((x_2-coordenadas_river.T[0])**2+(y_2-coordenadas_river.T[1])**2)
+            katch = grid.catchment(x=(coordenadas_river[np.argmin(dist)][0]-cellsize/2),
+                                   y=(coordenadas_river[np.argmin(dist)][1]+cellsize/2),
+                                   fdir=fdir, dirmap=dirmap, out_name='katch',
+                                   recursionlimit=150000, xytype='label',
+                                   nodata=np.int32(-1))
+            resta = resta + np.array(katch)
 
-        basin=np.flipud(np.array(catch).astype(float))
-        basin=np.array(catch)
+        catch = np.array(catch).astype(np.int32) * (1 - resta)
+        catch = grid._output_handler(data=catch, viewfinder=fdir.viewfinder,
+                                     metadata=fdir.metadata)
+
+
+        # basin=np.flipud(np.array(catch).astype(float))
+        # basin=np.array(catch)
         
         
 
@@ -165,9 +193,9 @@ class AEMET(object):
 
         lons = transform(inProj,outProj,coordenadas_basin.T[0],coordenadas_basin.T[1])[0]
         lats = transform(inProj,outProj,coordenadas_basin.T[0],coordenadas_basin.T[1])[1]
-        
+
         grid.clip_to(catch)
-        
+
         shapes = grid.polygonize()
         
         schema = {
