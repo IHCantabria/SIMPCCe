@@ -189,7 +189,7 @@ class AEMET(object):
         coordenadas_basin_DF = pd.DataFrame(coordenadas_basin,index=np.arange(1,len(coordenadas_basin)+1),columns = ['COORDX','COORDY'])
         coordenadas_basin_DF.to_csv(self.path_project+'01_CLIMA'+'/Puntos_Cuenca.csv')
 
-        print('Coordenada X: '+str(coordenadas_river[np.argmin(dist)][0]), 'Coordenada Y: '+str(coordenadas_river[np.argmin(dist)][1]))
+        # print('Coordenada X: '+str(coordenadas_river[np.argmin(dist)][0]), 'Coordenada Y: '+str(coordenadas_river[np.argmin(dist)][1]))
 
         lons = transform(inProj,outProj,coordenadas_basin.T[0],coordenadas_basin.T[1])[0]
         lats = transform(inProj,outProj,coordenadas_basin.T[0],coordenadas_basin.T[1])[1]

@@ -864,7 +864,7 @@ def plot_SSFI_climate_change(serie_hist, serie_spi_45, serie_spi_85, title,ax,la
     ax.set_ylim(-3,3)
     
     ax.vlines(f'{serie_spi_45.index.year[0]}-12-31', -3, 3, 'k', linestyle = '-')
-    ax.set_ylabel("SPI",fontsize=18)
+    ax.set_ylabel("SSFI",fontsize=18)
     ax.tick_params(axis="x", labelsize=14)
     ax.tick_params(axis="y", labelsize=14)
 
