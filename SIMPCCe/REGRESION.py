@@ -69,6 +69,7 @@ def plot_val_serie(serie_sim,serie_real,path_output):
         serie_real.plot(ax=ax, xlim=('1995','2005'),label='Obs')
 
     plt.legend()
+    ax.set_ylabel("Aportaciones (Hm3)")
     fig.savefig(path_output+'Validacion_Serie_Temporal.png',bbox_inches='tight')
     
     
