@@ -903,11 +903,11 @@ def plot_ensemble_subplots_embalse(
     # ➡️ Ajusta layout
     plt.tight_layout(rect=[0, 0.01, 1, 1])
 
-    # ➡️ Mostrar figura
-    plt.show()
-
     # ➡️ Guardar figura si se indica
     if save_fig:
         output_fig = os.path.join(path_project, '06_ANALISIS_RESULTADOS', fig_name)
         plt.savefig(output_fig, dpi=300, bbox_inches='tight')
         print(f"✅ Figura guardada en: {output_fig}")
+
+    # ➡️ Mostrar figura
+    plt.show()
